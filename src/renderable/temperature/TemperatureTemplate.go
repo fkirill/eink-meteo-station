@@ -24,8 +24,8 @@ var temperatureTemplate = `<html lang="en">
 		</div>
 		<div style="margin-top: 0px">
 			<img src="humidity.png" width="67" height="67"/>
-			<span style="font-size: 133px; font-family: cartograph">{{.HumidityInt}}</span>
-			<span style="font-size: 80px; font-family: cartograph">.{{.HumidityFrac}}</span>
+            {{if .HundredPercentHumidity}}<span style="font-size: 133px; font-family: cartograph">100</span>{{else}}<span style="font-size: 133px; font-family: cartograph">{{.HumidityInt}}</span>
+			<span style="font-size: 80px; font-family: cartograph">.{{.HumidityFrac}}</span>{{end}}
 			<img src="{{if .HumidityRising}}rising.png{{end}}{{if .HumidityFalling}}falling.png{{end}}{{if .HumiditySteady}}steady.png{{end}}" width="30" height="30"/>
 		</div>
 	</div>

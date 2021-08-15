@@ -26,18 +26,19 @@ type PressureData struct {
 }
 
 type TemperatureHumidityData struct {
-	Title              string
-	Warning            bool   // display an error sign
-	TemperatureInt     string // two digits
-	TemperatureFrac    string // one digit
-	TemperatureRising  bool   // One of the three must be true
-	TemperatureFalling bool   // the other two must be false
-	TemperatureSteady  bool
-	HumidityInt        string // two digits
-	HumidityFrac       string // one digit
-	HumidityRising     bool   // One of the three must be true
-	HumidityFalling    bool   // the other two must be false
-	HumiditySteady     bool
+	Title                  string
+	Warning                bool   // display an error sign
+	TemperatureInt         string // two digits
+	TemperatureFrac        string // one digit
+	TemperatureRising      bool   // One of the three must be true
+	TemperatureFalling     bool   // the other two must be false
+	TemperatureSteady      bool
+	HumidityInt            string // two digits
+	HumidityFrac           string // one digit
+	HumidityRising         bool   // One of the three must be true
+	HumidityFalling        bool   // the other two must be false
+	HumiditySteady         bool
+	HundredPercentHumidity bool
 }
 
 var authToken = "Bearer " + secrets.GetHAToken()
@@ -77,7 +78,7 @@ func DownloadSensorValueFromHA(sensorId string) (string, error) {
 		}
 		return val, nil
 	}
-	return "", errors.New("No field 'state' found in json output")
+	return "", errors.New("no field 'state' found in json output")
 }
 
 type HomeAssistantHistoryItem struct {
@@ -261,6 +262,7 @@ func getTemperatureHumidity(title, temperatureSensorName, humiditySensorName str
 	humidityRising := humiditySlope >= 0.3
 	humidityFalling := humiditySlope <= -0.3
 	humiditySteady := !(humidityRising || humidityFalling)
+	hundredPercentHumidity := humidityVal > 99.9
 	return &TemperatureHumidityData{
 		Title:              title,
 		Warning:            false,
@@ -274,6 +276,7 @@ func getTemperatureHumidity(title, temperatureSensorName, humiditySensorName str
 		HumidityRising:     humidityRising,
 		HumidityFalling:    humidityFalling,
 		HumiditySteady:     humiditySteady,
+		HundredPercentHumidity: hundredPercentHumidity,
 	}, nil
 }
 
