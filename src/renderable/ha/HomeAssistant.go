@@ -3,6 +3,7 @@ package ha
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -111,7 +112,13 @@ func DownloadSensorHistoryFromHA(sensorId string, startTime, endTime time.Time, 
 	}
 	var res [][]HomeAssistantHistoryItem
 	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, err
+	}
 	// remove quotes
+	if len(res) == 0 {
+		return nil, fmt.Errorf("no history returned for sensor %s", sensorId)
+	}
 	for _, e := range res[0] {
 		// if the value is quoted, cut off the quotes
 		if len(e.Value) >= 2 && e.Value[0] == '"' && e.Value[len(e.Value)-1] == '"' {

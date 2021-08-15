@@ -60,6 +60,9 @@ func (f *forecastRenderable) RedrawFinished() {
 
 func (f *forecastRenderable) Render() error {
 	forecastData, err := GetWeatherData()
+	if err != nil {
+		return err
+	}
 	html, err := GenerateForecastHtml(forecastData)
 	if err != nil {
 		return err

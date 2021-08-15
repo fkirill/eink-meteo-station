@@ -50,6 +50,7 @@ func main() {
 		panic(err)
 	}
 	first := true
+	currentDate := timeProvider.Now().Truncate(24 * time.Hour)
 	diffRenderer := renderable.NewDiffRenderer(size)
 	// main loop
 	for {
@@ -69,7 +70,6 @@ func main() {
 			panic(err)
 		}
 		if len(rects) == 0 {
-			println("Nothing to refresh")
 			continue
 		}
 		rects[0] = alignRectangles(rects[0], size.X)
@@ -81,6 +81,13 @@ func main() {
 		if first {
 			displayMode = 2
 			first = false
+		}
+		// full redraw at midnight
+		date := timeProvider.Now().Truncate(24 * time.Hour)
+		if date != currentDate {
+			currentDate = date
+			displayMode = 2
+			rects[0] = image.Rectangle{Max: size}
 		}
 		buffer := writeImageFrame(size, rects, displayMode, compressed)
 		_, err = writer.Write(buffer.Bytes())
