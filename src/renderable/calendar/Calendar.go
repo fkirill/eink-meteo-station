@@ -12,17 +12,17 @@ import (
 
 func NewCalendarRenderable(offset image.Point, size image.Point, provider utils.TimeProvider) renderable.Renderable {
 	return &calendarRenderable{
-		offset: offset,
-		size: size,
-		nextRefrawTime: provider.Now().Truncate(24 * time.Hour),
-		timeProvider: provider,
+		offset:         offset,
+		size:           size,
+		nextRedrawTime: provider.Now().Truncate(24 * time.Hour),
+		timeProvider:   provider,
 	}
 }
 
 type calendarRenderable struct {
 	offset         image.Point
 	size           image.Point
-	nextRefrawTime time.Time
+	nextRedrawTime time.Time
 	cachedRaster   []byte
 	timeProvider   utils.TimeProvider
 }
@@ -48,7 +48,7 @@ func (r *calendarRenderable) Size() image.Point {
 }
 
 func (r *calendarRenderable) NextRedrawDateTime() time.Time {
-	return r.nextRefrawTime
+	return r.nextRedrawTime
 }
 
 func (r *calendarRenderable) Area() int {
@@ -57,7 +57,7 @@ func (r *calendarRenderable) Area() int {
 }
 
 func (r *calendarRenderable) RedrawFinished() {
-	r.nextRefrawTime = r.timeProvider.Now().Truncate(24*time.Hour).Add(24*time.Hour)
+	r.nextRedrawTime = r.timeProvider.Now().Truncate(24*time.Hour).Add(24*time.Hour)
 }
 
 func (r *calendarRenderable) Raster() []byte {
