@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"secrets"
 	"sort"
 	"time"
@@ -119,6 +120,11 @@ type ForecastData struct {
 func GetWeatherData() (*ForecastData, error) {
 	response, err := http.Get(queryURL)
 	if err != nil {
+		urlErr := err.(*url.Error)
+		if urlErr.Timeout() || urlErr.Temporary() {
+			// can retry later, returning empty structure and no error
+			return &ForecastData{}, nil
+		}
 		return nil, err
 	}
 	defer response.Body.Close()

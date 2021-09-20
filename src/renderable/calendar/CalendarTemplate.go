@@ -16,6 +16,7 @@ type calendarDataDay struct {
 	SchoolHoliday bool
 	Weekend       bool
 	Important     bool
+	DayLegend     string
 }
 
 type calendarDataRow struct {

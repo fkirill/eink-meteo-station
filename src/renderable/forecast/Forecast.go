@@ -63,6 +63,10 @@ func (f *forecastRenderable) Render() error {
 	if err != nil {
 		return err
 	}
+	// was unable to read the data this time or there was an error, will retry next time
+	if forecastData.Days == nil  || len(forecastData.Days) == 0 {
+		return nil
+	}
 	html, err := GenerateForecastHtml(forecastData)
 	if err != nil {
 		return err
