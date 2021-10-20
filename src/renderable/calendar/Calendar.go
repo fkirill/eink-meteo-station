@@ -27,6 +27,10 @@ type calendarRenderable struct {
 	timeProvider   utils.TimeProvider
 }
 
+func (c *calendarRenderable) RedrawNow() {
+	c.nextRedrawTime = c.timeProvider.Now()
+}
+
 func (_ *calendarRenderable) String() string {
 	return "calendar"
 }

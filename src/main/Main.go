@@ -13,10 +13,14 @@ import (
 	"renderable/sunset_sunrise"
 	"renderable/temperature"
 	"renderable/utils"
+	"secrets"
 	"time"
+	"webui"
 )
 
 var pathToDisplayDriverProcess = "/home/pi/epaper/bcm2835-1.68/IT8951/IT8951/IT8951"
+
+var first = true
 
 func main() {
 	//timeProvider := renderable.NewTestTimeProvider(time.Now().Truncate(24*time.Hour).Add(-10*time.Second))
@@ -28,8 +32,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	temperatureView := temperature.NewHATemperatureView(image.Point{1000, 0}, timeProvider)
-	pressureView := pressure.NewHAPressureView(image.Point{1000, 500}, timeProvider)
+	temperatureView := temperature.NewHATemperatureView(
+		image.Point{1000, 0},
+		timeProvider,
+		secrets.GetInternalTemperatureSensor,
+		secrets.GetExternalTemperatureSensor,
+		secrets.GetInternalHumiditySensor,
+		secrets.GetExternalHumiditySensor,
+	)
+	pressureView := pressure.NewHAPressureView(image.Point{1000, 500}, timeProvider, secrets.GetPressureSensor)
 	daylightView := sunset_sunrise.NewSunriseSunsetRenderable(image.Point{1450, 500}, timeProvider)
 	forecastView := forecast.NewForecastRenderable(image.Point{X: 950, Y: 900}, timeProvider)
 	multiRenderable, err := renderable.NewMultiRenderable(
@@ -37,6 +48,11 @@ func main() {
 		size,
 		[]renderable.Renderable{forecastView, calendarView, clockView, temperatureView, pressureView, daylightView},
 		false)
+
+	configApi := newConfigApi(multiRenderable)
+	ws := webui.NewWebServer(configApi)
+	go ws.Start()
+
 	if err != nil {
 		panic(err)
 	}
@@ -49,7 +65,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	first := true
 	currentDate := timeProvider.Now().Truncate(24 * time.Hour)
 	diffRenderer := renderable.NewDiffRenderer(size)
 	// main loop
@@ -80,6 +95,7 @@ func main() {
 		}
 		if first {
 			displayMode = 2
+			rects[0] = image.Rectangle{Max: size}
 			first = false
 		}
 		// full redraw at midnight
@@ -140,4 +156,57 @@ func writeShort(w io.Writer, i uint16) {
 	if e != nil {
 		panic("unexpected")
 	}
+}
+
+type configApi struct {
+	multiRenderable renderable.Renderable
+}
+
+func (c configApi) GetInternalTemperatureSensorName() string {
+	return secrets.GetInternalTemperatureSensor()
+}
+
+func (c configApi) GetInternalHumiditySensorName() string {
+	return secrets.GetInternalHumiditySensor()
+}
+
+func (c configApi) GetExternalTemperatureSensorName() string {
+	return secrets.GetExternalTemperatureSensor()
+}
+
+func (c configApi) GetExternalHumiditySensorName() string {
+	return secrets.GetExternalHumiditySensor()
+}
+
+func (c configApi) GetPressureSensorName() string {
+	return secrets.GetPressureSensor()
+}
+
+func (c configApi) RedrawAll() {
+	c.multiRenderable.RedrawNow()
+	first = true
+}
+
+func (c configApi) SetInternalTemperatureSensorName(sensorName string) {
+	secrets.SetInternalTemperatureSensor(sensorName)
+}
+
+func (c configApi) SetInternalHumiditySensorName(sensorName string) {
+	secrets.SetInternalHumiditySensor(sensorName)
+}
+
+func (c configApi) SetExternalTemperatureSensorName(sensorName string) {
+	secrets.SetExternalTemperatureSensor(sensorName)
+}
+
+func (c configApi) SetExternalHumiditySensorName(sensorName string) {
+	secrets.SetExternalHumiditySensor(sensorName)
+}
+
+func (c configApi) SetPressureSensorName(sensorName string) {
+	secrets.SetPressureSensor(sensorName)
+}
+
+func newConfigApi(multiRenderable renderable.Renderable) webui.ConfigApi {
+	return &configApi{multiRenderable: multiRenderable}
 }

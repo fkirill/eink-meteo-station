@@ -23,6 +23,10 @@ type sunriseSunsetRenderable struct {
 	timeProvider       utils.TimeProvider
 }
 
+func (s *sunriseSunsetRenderable) RedrawNow() {
+	s.nextRedrawDateTime = s.timeProvider.Now()
+}
+
 func NewSunriseSunsetRenderable(offset image.Point, timeProvider utils.TimeProvider) renderable.Renderable {
 	size := image.Point{X: 420, Y: 400}
 	raster := make([]byte, size.X*size.Y, size.X*size.Y)

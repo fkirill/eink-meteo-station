@@ -43,6 +43,15 @@ type multiRenderable struct {
 	renderCalcPending bool
 }
 
+func (m *multiRenderable) RedrawNow() {
+	for i := range m.raster {
+		m.raster[i] = 0xff
+	}
+	for _, r := range m.renderables {
+		r.RedrawNow()
+	}
+}
+
 func (_ *multiRenderable) String() string{
 	return "multi-renderable"
 }

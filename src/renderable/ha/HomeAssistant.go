@@ -160,23 +160,18 @@ func ConvertToNumericSeries(source []HomeAssistantHistoryItem) ([]NumericHistory
 	return res, nil
 }
 
-var insideTemperatureSensorName = "sensor.living_room_sensor_temperature"
-var insideHumiditySensorName = "sensor.living_room_sensor_humidity"
-var outsideTemperatureSensorName = "sensor.aht10_temperature"
-var outsideHumiditySensorName = "sensor.aht10_humidity"
-var pressureSensorName = "sensor.living_room_sensor_pressure"
 var hPaToMmHgCoeff = 1.33
 var normalPressureMmHg = 760.0
 
-func GetInsideTemperatureHumidity() (*TemperatureHumidityData, error) {
+func GetInsideTemperatureHumidity(insideTemperatureSensorName, insideHumiditySensorName string) (*TemperatureHumidityData, error) {
 	return getTemperatureHumidity("Inside", insideTemperatureSensorName, insideHumiditySensorName)
 }
 
-func GetOutsideTemperatureHumidity() (*TemperatureHumidityData, error) {
+func GetOutsideTemperatureHumidity(outsideTemperatureSensorName, outsideHumiditySensorName string) (*TemperatureHumidityData, error) {
 	return getTemperatureHumidity("Outside", outsideTemperatureSensorName, outsideHumiditySensorName)
 }
 
-func GetPressure() (*PressureData, error) {
+func GetPressure(pressureSensorName string) (*PressureData, error) {
 	pressure, err := DownloadSensorValueFromHA(pressureSensorName)
 	if err != nil {
 		return nil, err

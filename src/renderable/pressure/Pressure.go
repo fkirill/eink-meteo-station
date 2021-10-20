@@ -15,28 +15,34 @@ var pressureViewWidth = 400
 var pressureViewHeight = 400
 var pressureWidgetSize = image.Point{X: pressureViewWidth + 50, Y: pressureViewHeight}
 
-func NewHAPressureView(offset image.Point, timeProvider utils.TimeProvider) renderable.Renderable {
+func NewHAPressureView(offset image.Point, timeProvider utils.TimeProvider, pressureSensorFn func() string) renderable.Renderable {
 	raster := make([]byte, pressureWidgetSize.X*pressureWidgetSize.Y, pressureWidgetSize.X*pressureWidgetSize.Y)
 	for i := range raster {
 		raster[i] = 0xff
 	}
 	return &pressureView{
-		size:           pressureWidgetSize,
-		offset:         offset,
-		nextRedrawTime: timeProvider.Now(),
-		raster:         raster,
-		pressure:       ha.PressureData{},
-		timeProvider:   timeProvider,
+		size:             pressureWidgetSize,
+		offset:           offset,
+		nextRedrawTime:   timeProvider.Now(),
+		raster:           raster,
+		pressure:         ha.PressureData{},
+		timeProvider:     timeProvider,
+		pressureSensorFn: pressureSensorFn,
 	}
 }
 
 type pressureView struct {
-	size           image.Point
-	offset         image.Point
-	nextRedrawTime time.Time
-	raster         []byte
-	pressure       ha.PressureData
-	timeProvider   utils.TimeProvider
+	size             image.Point
+	offset           image.Point
+	nextRedrawTime   time.Time
+	raster           []byte
+	pressure         ha.PressureData
+	timeProvider     utils.TimeProvider
+	pressureSensorFn func() string
+}
+
+func (p *pressureView) RedrawNow() {
+	p.nextRedrawTime = p.timeProvider.Now()
 }
 
 func (_ *pressureView) String() string {
@@ -69,7 +75,7 @@ func (p *pressureView) RedrawFinished() {
 }
 
 func (p *pressureView) Render() error {
-	pressure, err := ha.GetPressure()
+	pressure, err := ha.GetPressure(p.pressureSensorFn())
 	pressureNeedsRedraw := false
 	if err != nil {
 		if !p.pressure.Warning {

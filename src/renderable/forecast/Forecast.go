@@ -17,6 +17,10 @@ type forecastRenderable struct {
 	timeProvider       utils.TimeProvider
 }
 
+func (f *forecastRenderable) RedrawNow() {
+	f.nextRedrawDateTime = f.timeProvider.Now()
+}
+
 var forecastSize = image.Point{X: 920, Y: 500}
 
 func NewForecastRenderable(offset image.Point, timeProvider utils.TimeProvider) renderable.Renderable {

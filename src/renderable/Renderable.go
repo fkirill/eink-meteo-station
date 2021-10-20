@@ -15,4 +15,5 @@ type Renderable interface {
 	Render() error
 	DisplayMode() int
 	String() string
+	RedrawNow()
 }

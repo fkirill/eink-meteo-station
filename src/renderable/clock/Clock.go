@@ -96,6 +96,10 @@ type clockRenderable struct {
 	timeProvider         utils.TimeProvider
 }
 
+func (c *clockRenderable) RedrawNow() {
+	c.nextRedrawTime = c.timeProvider.Now()
+}
+
 func (_ *clockRenderable) String() string {
 	return "clock"
 }

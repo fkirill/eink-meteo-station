@@ -16,7 +16,13 @@ var tempViewHeight = 481
 var signleTempViewSize = image.Point{X: tempViewWidth, Y: tempViewHeight}
 var temperatureWidgetSize = image.Point{X: 2*tempViewWidth + 50, Y: tempViewHeight}
 
-func NewHATemperatureView(offset image.Point, timeProvider utils.TimeProvider) renderable.Renderable {
+func NewHATemperatureView(
+	offset image.Point,
+	timeProvider utils.TimeProvider,
+	insideTemperatureSensorFn,
+	outsideTemperatureSensorFn,
+	insideHumiditySensorFn,
+	outsideHumiditySensorFn func() string) renderable.Renderable {
 	raster := make([]byte, temperatureWidgetSize.X*temperatureWidgetSize.Y, temperatureWidgetSize.X*temperatureWidgetSize.Y)
 	for i := range raster {
 		raster[i] = 0xff
@@ -29,17 +35,29 @@ func NewHATemperatureView(offset image.Point, timeProvider utils.TimeProvider) r
 		inside:         ha.TemperatureHumidityData{},
 		outside:        ha.TemperatureHumidityData{},
 		timeProvider:   timeProvider,
+		insideTemperatureSensorFn: insideTemperatureSensorFn,
+		insideHumiditySensorFn: insideHumiditySensorFn,
+		outsideTemperatureSensorFn: outsideTemperatureSensorFn,
+		outsideHumiditySensorFn: outsideHumiditySensorFn,
 	}
 }
 
 type temperatureView struct {
-	size           image.Point
-	offset         image.Point
-	nextRedrawTime time.Time
-	raster         []byte
-	inside         ha.TemperatureHumidityData
-	outside        ha.TemperatureHumidityData
-	timeProvider   utils.TimeProvider
+	size                       image.Point
+	offset                     image.Point
+	nextRedrawTime             time.Time
+	raster                     []byte
+	inside                     ha.TemperatureHumidityData
+	outside                    ha.TemperatureHumidityData
+	timeProvider               utils.TimeProvider
+	insideTemperatureSensorFn  func() string
+	outsideTemperatureSensorFn func() string
+	insideHumiditySensorFn     func() string
+	outsideHumiditySensorFn    func() string
+}
+
+func (t *temperatureView) RedrawNow() {
+	t.nextRedrawTime = t.timeProvider.Now()
 }
 
 func (_ *temperatureView) String() string {
@@ -72,7 +90,7 @@ func (t *temperatureView) RedrawFinished() {
 }
 
 func (t *temperatureView) Render() error {
-	inside, err := ha.GetInsideTemperatureHumidity()
+	inside, err := ha.GetInsideTemperatureHumidity(t.insideTemperatureSensorFn(), t.insideHumiditySensorFn())
 	insideNeedsRedraw := false
 	if err != nil {
 		if !t.inside.Warning {
@@ -85,7 +103,7 @@ func (t *temperatureView) Render() error {
 			insideNeedsRedraw = true
 		}
 	}
-	outside, err := ha.GetOutsideTemperatureHumidity()
+	outside, err := ha.GetOutsideTemperatureHumidity(t.outsideTemperatureSensorFn(), t.outsideHumiditySensorFn())
 	outsideNeedsRedraw := false
 	if err != nil {
 		if !t.outside.Warning {
