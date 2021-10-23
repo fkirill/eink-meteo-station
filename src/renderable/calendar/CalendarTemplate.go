@@ -234,7 +234,7 @@ func dailySpecialDays(year int, month time.Month, specialDays []config.SpecialDa
 			}
 			if sd.Type == "interval" {
 				startDate := time.Date(sd.StartDateYear, time.Month(sd.StartDateMonth), sd.StartDateDay, 0, 0, 0, 0, time.UTC)
-				endDate := time.Date(sd.StartDateYear, time.Month(sd.StartDateMonth), sd.StartDateDay, 0, 0, 0, 0, time.UTC)
+				endDate := time.Date(sd.EndDateYear, time.Month(sd.EndDateMonth), sd.EndDateDay, 0, 0, 0, 0, time.UTC)
 				if startDate == day || endDate == day || (startDate.Before(day) && endDate.After(day)) {
 					sdp = &sd
 					break

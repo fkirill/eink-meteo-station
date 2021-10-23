@@ -65,7 +65,7 @@
 
 .currentDay {
     color: #fff;
-    background: #222;
+    background: #222 !important;
     font-weight: bold;
 }
 
@@ -74,7 +74,6 @@
 }
 
 .schoolHoliday {
-    color: #fff;
     background: #aaa;
 }
 
