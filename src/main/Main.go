@@ -8,12 +8,12 @@ import (
 	"renderable"
 	"renderable/calendar"
 	"renderable/clock"
+	"renderable/config"
 	"renderable/forecast"
 	"renderable/pressure"
 	"renderable/sunset_sunrise"
 	"renderable/temperature"
 	"renderable/utils"
-	"secrets"
 	"time"
 	"webui"
 )
@@ -27,7 +27,7 @@ func main() {
 	timeProvider := utils.NewTimeProvider()
 
 	size := image.Point{X: 1872, Y: 1404}
-	calendarView := calendar.NewCalendarRenderable(image.Point{Y: 280}, image.Point{X: 962, Y: 952}, timeProvider)
+	calendarView := calendar.NewCalendarRenderable(image.Point{Y: 280}, image.Point{X: 962, Y: 1120}, timeProvider)
 	clockView, err := clock.NewClockRenderable(image.Point{}, timeProvider)
 	if err != nil {
 		panic(err)
@@ -35,12 +35,12 @@ func main() {
 	temperatureView := temperature.NewHATemperatureView(
 		image.Point{1000, 0},
 		timeProvider,
-		secrets.GetInternalTemperatureSensor,
-		secrets.GetExternalTemperatureSensor,
-		secrets.GetInternalHumiditySensor,
-		secrets.GetExternalHumiditySensor,
+		config.GetInternalTemperatureSensor,
+		config.GetExternalTemperatureSensor,
+		config.GetInternalHumiditySensor,
+		config.GetExternalHumiditySensor,
 	)
-	pressureView := pressure.NewHAPressureView(image.Point{1000, 500}, timeProvider, secrets.GetPressureSensor)
+	pressureView := pressure.NewHAPressureView(image.Point{1000, 500}, timeProvider, config.GetPressureSensor)
 	daylightView := sunset_sunrise.NewSunriseSunsetRenderable(image.Point{1450, 500}, timeProvider)
 	forecastView := forecast.NewForecastRenderable(image.Point{X: 950, Y: 900}, timeProvider)
 	multiRenderable, err := renderable.NewMultiRenderable(
@@ -65,11 +65,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	currentDate := timeProvider.Now().Truncate(24 * time.Hour)
+	currentDate := timeProvider.LocalNow().Truncate(24 * time.Hour)
 	diffRenderer := renderable.NewDiffRenderer(size)
 	// main loop
 	for {
-		timeToNextDraw := multiRenderable.NextRedrawDateTime().Sub(timeProvider.Now())
+		timeToNextDraw := multiRenderable.NextRedrawDateTimeUtc().Sub(timeProvider.UtcNow())
 		if timeToNextDraw.Nanoseconds() > 0 {
 			time.Sleep(timeToNextDraw)
 		}
@@ -99,7 +99,7 @@ func main() {
 			first = false
 		}
 		// full redraw at midnight
-		date := timeProvider.Now().Truncate(24 * time.Hour)
+		date := timeProvider.LocalNow().Truncate(24 * time.Hour)
 		if date != currentDate {
 			currentDate = date
 			displayMode = 2
@@ -162,24 +162,32 @@ type configApi struct {
 	multiRenderable renderable.Renderable
 }
 
+func (c configApi) SetSpecialDays(specialDays []config.SpecialDayOrInterval) {
+	config.SetSpecialDays(specialDays)
+}
+
+func (c configApi) GetSpecialDays() []config.SpecialDayOrInterval {
+	return config.GetSpecialDays()
+}
+
 func (c configApi) GetInternalTemperatureSensorName() string {
-	return secrets.GetInternalTemperatureSensor()
+	return config.GetInternalTemperatureSensor()
 }
 
 func (c configApi) GetInternalHumiditySensorName() string {
-	return secrets.GetInternalHumiditySensor()
+	return config.GetInternalHumiditySensor()
 }
 
 func (c configApi) GetExternalTemperatureSensorName() string {
-	return secrets.GetExternalTemperatureSensor()
+	return config.GetExternalTemperatureSensor()
 }
 
 func (c configApi) GetExternalHumiditySensorName() string {
-	return secrets.GetExternalHumiditySensor()
+	return config.GetExternalHumiditySensor()
 }
 
 func (c configApi) GetPressureSensorName() string {
-	return secrets.GetPressureSensor()
+	return config.GetPressureSensor()
 }
 
 func (c configApi) RedrawAll() {
@@ -188,23 +196,23 @@ func (c configApi) RedrawAll() {
 }
 
 func (c configApi) SetInternalTemperatureSensorName(sensorName string) {
-	secrets.SetInternalTemperatureSensor(sensorName)
+	config.SetInternalTemperatureSensor(sensorName)
 }
 
 func (c configApi) SetInternalHumiditySensorName(sensorName string) {
-	secrets.SetInternalHumiditySensor(sensorName)
+	config.SetInternalHumiditySensor(sensorName)
 }
 
 func (c configApi) SetExternalTemperatureSensorName(sensorName string) {
-	secrets.SetExternalTemperatureSensor(sensorName)
+	config.SetExternalTemperatureSensor(sensorName)
 }
 
 func (c configApi) SetExternalHumiditySensorName(sensorName string) {
-	secrets.SetExternalHumiditySensor(sensorName)
+	config.SetExternalHumiditySensor(sensorName)
 }
 
 func (c configApi) SetPressureSensorName(sensorName string) {
-	secrets.SetPressureSensor(sensorName)
+	config.SetPressureSensor(sensorName)
 }
 
 func newConfigApi(multiRenderable renderable.Renderable) webui.ConfigApi {

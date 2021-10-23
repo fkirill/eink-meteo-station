@@ -14,7 +14,7 @@ func NewCalendarRenderable(offset image.Point, size image.Point, provider utils.
 	return &calendarRenderable{
 		offset:         offset,
 		size:           size,
-		nextRedrawTime: provider.Now().Truncate(24 * time.Hour),
+		nextRedrawTime: provider.UtcNow().AddDate(0, 0, -1),
 		timeProvider:   provider,
 	}
 }
@@ -28,7 +28,7 @@ type calendarRenderable struct {
 }
 
 func (c *calendarRenderable) RedrawNow() {
-	c.nextRedrawTime = c.timeProvider.Now()
+	c.nextRedrawTime = c.timeProvider.UtcNow()
 }
 
 func (_ *calendarRenderable) String() string {
@@ -51,7 +51,7 @@ func (r *calendarRenderable) Size() image.Point {
 	return r.size
 }
 
-func (r *calendarRenderable) NextRedrawDateTime() time.Time {
+func (r *calendarRenderable) NextRedrawDateTimeUtc() time.Time {
 	return r.nextRedrawTime
 }
 
@@ -61,7 +61,7 @@ func (r *calendarRenderable) Area() int {
 }
 
 func (r *calendarRenderable) RedrawFinished() {
-	r.nextRedrawTime = r.timeProvider.Now().Truncate(24*time.Hour).Add(24*time.Hour)
+	r.nextRedrawTime = r.timeProvider.LocalNow().Truncate(24*time.Hour).AddDate(0, 0, 1).UTC()
 }
 
 func (r *calendarRenderable) Raster() []byte {
@@ -69,12 +69,7 @@ func (r *calendarRenderable) Raster() []byte {
 }
 
 func (r *calendarRenderable) Render() error {
-	// generate html
-	// call puppeteer to render the html into png
-	// load png
-	// convert to 16 gray-scale image
-	// return raster (and cache of course)
-	now := r.timeProvider.Now()
+	now := r.timeProvider.LocalNow()
 	html, err := RenderCurrentMonthHtml(now.Year(), now.Month(), now.Day())
 	if err != nil {
 		return err

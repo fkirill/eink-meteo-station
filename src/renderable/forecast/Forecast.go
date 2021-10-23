@@ -18,7 +18,7 @@ type forecastRenderable struct {
 }
 
 func (f *forecastRenderable) RedrawNow() {
-	f.nextRedrawDateTime = f.timeProvider.Now()
+	f.nextRedrawDateTime = f.timeProvider.UtcNow()
 }
 
 var forecastSize = image.Point{X: 920, Y: 500}
@@ -32,7 +32,7 @@ func NewForecastRenderable(offset image.Point, timeProvider utils.TimeProvider) 
 		offset:             offset,
 		size:               forecastSize,
 		raster:             raster,
-		nextRedrawDateTime: timeProvider.Now(),
+		nextRedrawDateTime: timeProvider.UtcNow(),
 		timeProvider:       timeProvider,
 	}
 }
@@ -53,13 +53,13 @@ func (f *forecastRenderable) Raster() []byte {
 	return f.raster
 }
 
-func (f *forecastRenderable) NextRedrawDateTime() time.Time {
+func (f *forecastRenderable) NextRedrawDateTimeUtc() time.Time {
 	return f.nextRedrawDateTime
 }
 
 func (f *forecastRenderable) RedrawFinished() {
 	// redraw every 3 hours
-	f.nextRedrawDateTime = f.timeProvider.Now().Truncate(time.Hour).Add(3 * time.Hour)
+	f.nextRedrawDateTime = f.timeProvider.UtcNow().Truncate(time.Hour).Add(3 * time.Hour)
 }
 
 func (f *forecastRenderable) Render() error {

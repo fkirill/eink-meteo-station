@@ -79,7 +79,7 @@ func NewClockRenderable(offset image.Point, provider utils.TimeProvider) (render
 	return &clockRenderable{
 		offset:         offset,
 		raster:         raster,
-		nextRedrawTime: provider.Now(),
+		nextRedrawTime: provider.UtcNow(),
 		// unrealistic values, will be reset upon first render
 		hour:         70,
 		minute:       70,
@@ -97,7 +97,7 @@ type clockRenderable struct {
 }
 
 func (c *clockRenderable) RedrawNow() {
-	c.nextRedrawTime = c.timeProvider.Now()
+	c.nextRedrawTime = c.timeProvider.UtcNow()
 }
 
 func (_ *clockRenderable) String() string {
@@ -124,19 +124,20 @@ func (c *clockRenderable) Raster() []byte {
 	return c.raster
 }
 
-func (c *clockRenderable) NextRedrawDateTime() time.Time {
+func (c *clockRenderable) NextRedrawDateTimeUtc() time.Time {
 	return c.nextRedrawTime
 }
 
 func (c *clockRenderable) RedrawFinished() {
-	now := c.timeProvider.Now().Truncate(time.Second)
+	now := c.timeProvider.UtcNow().Truncate(time.Second)
 	c.nextRedrawTime = now.Add(time.Second)
 }
 
 func (c *clockRenderable) Render() error {
-	nextHour := c.nextRedrawTime.Hour()
-	nextMinute := c.nextRedrawTime.Minute()
-	nextSecond := c.nextRedrawTime.Second()
+	now := c.timeProvider.LocalNow()
+	nextHour := now.Hour()
+	nextMinute := now.Minute()
+	nextSecond := now.Second()
 	if c.hour != nextHour {
 		c.drawNumber(0, nextHour)
 	}

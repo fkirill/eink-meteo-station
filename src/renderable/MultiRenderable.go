@@ -87,9 +87,9 @@ func (m *multiRenderable) maybeCalculateWhatToRerender() {
 	if !m.renderCalcPending {
 		return
 	}
-	minTime := m.renderables[0].NextRedrawDateTime()
+	minTime := m.renderables[0].NextRedrawDateTimeUtc()
 	for _, r := range m.renderables {
-		redrawTime := r.NextRedrawDateTime()
+		redrawTime := r.NextRedrawDateTimeUtc()
 		if minTime.After(redrawTime) {
 			minTime = redrawTime
 		}
@@ -97,7 +97,7 @@ func (m *multiRenderable) maybeCalculateWhatToRerender() {
 	m.nextRenderTime = minTime
 	toReRender := make([]Renderable, 0)
 	for _, r := range m.renderables {
-		if r.NextRedrawDateTime() == minTime {
+		if r.NextRedrawDateTimeUtc() == minTime {
 			toReRender = append(toReRender, r)
 		}
 	}
@@ -105,7 +105,7 @@ func (m *multiRenderable) maybeCalculateWhatToRerender() {
 	m.renderCalcPending = false
 }
 
-func (m *multiRenderable) NextRedrawDateTime() time.Time {
+func (m *multiRenderable) NextRedrawDateTimeUtc() time.Time {
 	m.maybeCalculateWhatToRerender()
 	return m.nextRenderTime
 }

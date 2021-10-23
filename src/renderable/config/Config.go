@@ -1,4 +1,4 @@
-package secrets
+package config
 
 import (
 	"encoding/json"
@@ -29,6 +29,22 @@ type openWeatherMapSettings struct {
 type configData struct {
 	HomeAssistant  homeAssistantSettings  `json:"home_assistant"`
 	OpenWeatherMap openWeatherMapSettings `json:"open_weather_map"`
+	SpecialDays    []SpecialDayOrInterval `json:"special_days"`
+}
+
+type SpecialDayOrInterval struct {
+	Index           int    `json:"index"`
+	Id              string `json:"id"`
+	DisplayText     string `json:"display_text"`
+	Type            string `json:"type"`
+	StartDateDay    int    `json:"start_date_day"`
+	StartDateMonth  int    `json:"start_date_month"`
+	StartDateYear   int    `json:"start_date_year"`
+	EndDateDay      int    `json:"end_date_day"`
+	EndDateMonth    int    `json:"end_date_month"`
+	EndDateYear     int    `json:"end_date_year"`
+	IsPublicHoliday bool   `json:"is_public_holiday"`
+	IsSchoolHoliday bool   `json:"is_school_holiday"`
 }
 
 var config *configData
@@ -133,5 +149,17 @@ func SetExternalHumiditySensor(sensorName string) {
 
 func SetPressureSensor(sensorName string) {
 	config.HomeAssistant.PressureSensor = sensorName
+	saveConfig()
+}
+
+func GetSpecialDays() []SpecialDayOrInterval {
+	if config.SpecialDays == nil {
+		return []SpecialDayOrInterval{}
+	}
+	return config.SpecialDays
+}
+
+func SetSpecialDays(specialDays []SpecialDayOrInterval) {
+	config.SpecialDays = specialDays
 	saveConfig()
 }

@@ -21,7 +21,7 @@ func WriteImageFromRaster(size image.Point, raster []byte, filename string) erro
 	for y := 0; y < size.Y; y++ {
 		for x := 0; x < size.X; x++ {
 			grayColor := raster[index]
-			c := color.NRGBA{grayColor, grayColor, grayColor, 255}
+			c := color.NRGBA{R: grayColor, G: grayColor, B: grayColor, A: 255}
 			i.Set(x, y, c)
 			index++
 		}
@@ -99,37 +99,52 @@ func LoadImage(fileName string) (image.Image, error) {
 }
 
 type TimeProvider interface {
-	Now() time.Time
+	LocalNow() time.Time
+	UtcNow() time.Time
 }
 
-type offsetTimeProvider struct {
+type locationTimeProvider struct {
+	location *time.Location
+}
+
+func (o *locationTimeProvider) LocalNow() time.Time {
+	return time.Now().In(o.location)
+}
+
+func (o *locationTimeProvider) UtcNow() time.Time {
+	return time.Now().UTC()
+}
+
+type testTimeProvider struct {
 	offset time.Duration
 }
 
-func (o *offsetTimeProvider) Now() time.Time {
+func (o *testTimeProvider) LocalNow() time.Time {
 	return time.Now().UTC().Add(o.offset)
+}
+
+func (o *testTimeProvider) UtcNow() time.Time {
+	return time.Now().UTC()
 }
 
 func NewTestTimeProvider(startTime time.Time) TimeProvider {
 	now := time.Now()
 	_, tzOffset := now.Zone()
 	testOffset := int(startTime.Sub(now).Seconds())
-	return &offsetTimeProvider{time.Duration(tzOffset+testOffset) * time.Second}
+	return &testTimeProvider{time.Duration(tzOffset+testOffset) * time.Second}
 }
 
 func NewTimeProvider() TimeProvider {
-	now := time.Now()
-	_, tzOffset := now.Zone()
-	return &offsetTimeProvider{time.Duration(tzOffset) * time.Second}
+	return &locationTimeProvider{time.Local}
 }
 
 func DrawImage(targetImage []byte, targetImageSize image.Point, targetOffset image.Point, sourceImage []byte, sourceImageSize image.Point) {
-	if targetOffset.X + sourceImageSize.X > targetImageSize.X || targetOffset.Y + sourceImageSize.Y > targetImageSize.Y {
+	if targetOffset.X+sourceImageSize.X > targetImageSize.X || targetOffset.Y+sourceImageSize.Y > targetImageSize.Y {
 		panic("images don't overlap fully")
 	}
-	if len(targetImage) != targetImageSize.X * targetImageSize.Y || len(sourceImage) != sourceImageSize.X * sourceImageSize.Y {
-		fmt.Printf("sourceImageSize %v, expectedLen %d, actualLen %d\n", sourceImageSize, len(sourceImage), sourceImageSize.X * sourceImageSize.Y)
-		fmt.Printf("targetImageSize %v, expectedLen %d, actualLen %d\n", targetImageSize, len(targetImage), targetImageSize.X * targetImageSize.Y)
+	if len(targetImage) != targetImageSize.X*targetImageSize.Y || len(sourceImage) != sourceImageSize.X*sourceImageSize.Y {
+		fmt.Printf("sourceImageSize %v, expectedLen %d, actualLen %d\n", sourceImageSize, len(sourceImage), sourceImageSize.X*sourceImageSize.Y)
+		fmt.Printf("targetImageSize %v, expectedLen %d, actualLen %d\n", targetImageSize, len(targetImage), targetImageSize.X*targetImageSize.Y)
 		panic("wrong image sizes")
 	}
 	dstIndex := targetOffset.Y*targetImageSize.X + targetOffset.X

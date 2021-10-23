@@ -10,7 +10,7 @@ type Renderable interface {
 	Offset() image.Point
 	Size() image.Point
 	Raster() []byte
-	NextRedrawDateTime() time.Time
+	NextRedrawDateTimeUtc() time.Time
 	RedrawFinished()
 	Render() error
 	DisplayMode() int

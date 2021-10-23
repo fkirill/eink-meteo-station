@@ -24,7 +24,7 @@ type sunriseSunsetRenderable struct {
 }
 
 func (s *sunriseSunsetRenderable) RedrawNow() {
-	s.nextRedrawDateTime = s.timeProvider.Now()
+	s.nextRedrawDateTime = s.timeProvider.UtcNow()
 }
 
 func NewSunriseSunsetRenderable(offset image.Point, timeProvider utils.TimeProvider) renderable.Renderable {
@@ -37,7 +37,7 @@ func NewSunriseSunsetRenderable(offset image.Point, timeProvider utils.TimeProvi
 		offset:             offset,
 		size:               size,
 		raster:             raster,
-		nextRedrawDateTime: timeProvider.Now(),
+		nextRedrawDateTime: timeProvider.UtcNow(),
 		timeProvider:       timeProvider,
 	}
 }
@@ -58,12 +58,12 @@ func (s *sunriseSunsetRenderable) Raster() []byte {
 	return s.raster
 }
 
-func (s *sunriseSunsetRenderable) NextRedrawDateTime() time.Time {
+func (s *sunriseSunsetRenderable) NextRedrawDateTimeUtc() time.Time {
 	return s.nextRedrawDateTime
 }
 
 func (s *sunriseSunsetRenderable) RedrawFinished() {
-	s.nextRedrawDateTime = s.timeProvider.Now().Truncate(time.Hour * 24).Add(time.Hour * 24)
+	s.nextRedrawDateTime = s.timeProvider.LocalNow().Truncate(time.Hour * 24).AddDate(0, 0, 1).UTC()
 }
 
 const picnicPointLatitude = -33.969526

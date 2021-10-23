@@ -70,10 +70,20 @@
 }
 
 .publicHoliday {
+    background: #ccc;
 }
 
 .schoolHoliday {
+    color: #fff;
+    background: #aaa;
 }
 
 .important {
+    background: #888;
+}
+
+.calendarLegend {
+    font-size: 56px;
+    font-family: "bront-ubuntu";
+    overflow-wrap: break-word;
 }

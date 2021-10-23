@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
-	"secrets"
+	"renderable/config"
 	"strconv"
 	"time"
 )
@@ -41,10 +41,10 @@ type TemperatureHumidityData struct {
 	HundredPercentHumidity bool
 }
 
-var authToken = "Bearer " + secrets.GetHAToken()
-var homeAssistantProtocol = secrets.GetHAProtocol()
-var homeAssistantHost = secrets.GetHAHost()
-var homeAssistantPort = secrets.GetHAPort()
+var authToken = "Bearer " + config.GetHAToken()
+var homeAssistantProtocol = config.GetHAProtocol()
+var homeAssistantHost = config.GetHAHost()
+var homeAssistantPort = config.GetHAPort()
 var haProtocolHostPort = homeAssistantProtocol + "://" + homeAssistantHost + ":" + strconv.Itoa(int(homeAssistantPort))
 
 func DownloadSensorValueFromHA(sensorId string) (string, error) {

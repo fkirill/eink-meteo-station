@@ -23,7 +23,7 @@ func NewHAPressureView(offset image.Point, timeProvider utils.TimeProvider, pres
 	return &pressureView{
 		size:             pressureWidgetSize,
 		offset:           offset,
-		nextRedrawTime:   timeProvider.Now(),
+		nextRedrawTime:   timeProvider.UtcNow(),
 		raster:           raster,
 		pressure:         ha.PressureData{},
 		timeProvider:     timeProvider,
@@ -42,7 +42,7 @@ type pressureView struct {
 }
 
 func (p *pressureView) RedrawNow() {
-	p.nextRedrawTime = p.timeProvider.Now()
+	p.nextRedrawTime = p.timeProvider.UtcNow()
 }
 
 func (_ *pressureView) String() string {
@@ -65,13 +65,13 @@ func (p *pressureView) Raster() []byte {
 	return p.raster
 }
 
-func (p *pressureView) NextRedrawDateTime() time.Time {
+func (p *pressureView) NextRedrawDateTimeUtc() time.Time {
 	return p.nextRedrawTime
 }
 
 func (p *pressureView) RedrawFinished() {
 	// refresh at random intervals 1800 to 2000 seconds (approximately every 5 minutes)
-	p.nextRedrawTime = p.timeProvider.Now().Add(time.Second * time.Duration(rand.Intn(200)+1800))
+	p.nextRedrawTime = p.timeProvider.UtcNow().Add(time.Second * time.Duration(rand.Intn(200)+1800))
 }
 
 func (p *pressureView) Render() error {

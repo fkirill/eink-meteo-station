@@ -30,7 +30,7 @@ func NewHATemperatureView(
 	return &temperatureView{
 		size:           temperatureWidgetSize,
 		offset:         offset,
-		nextRedrawTime: timeProvider.Now(),
+		nextRedrawTime: timeProvider.UtcNow(),
 		raster:         raster,
 		inside:         ha.TemperatureHumidityData{},
 		outside:        ha.TemperatureHumidityData{},
@@ -57,7 +57,7 @@ type temperatureView struct {
 }
 
 func (t *temperatureView) RedrawNow() {
-	t.nextRedrawTime = t.timeProvider.Now()
+	t.nextRedrawTime = t.timeProvider.UtcNow()
 }
 
 func (_ *temperatureView) String() string {
@@ -80,13 +80,13 @@ func (t *temperatureView) Raster() []byte {
 	return t.raster
 }
 
-func (t *temperatureView) NextRedrawDateTime() time.Time {
+func (t *temperatureView) NextRedrawDateTimeUtc() time.Time {
 	return t.nextRedrawTime
 }
 
 func (t *temperatureView) RedrawFinished() {
 	// refresh at random intervals 200 to 400 seconds (approximately every 5 minutes)
-	t.nextRedrawTime = t.timeProvider.Now().Add(time.Second * time.Duration(rand.Intn(200)+200))
+	t.nextRedrawTime = t.timeProvider.UtcNow().Add(time.Second * time.Duration(rand.Intn(200)+200))
 }
 
 func (t *temperatureView) Render() error {

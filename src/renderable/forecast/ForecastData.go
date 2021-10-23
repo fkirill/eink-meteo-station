@@ -5,14 +5,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"secrets"
+	"renderable/config"
 	"sort"
 	"time"
 )
 
-var zipCode = secrets.GetOpenWeatherMapPostCode()
-var countryCode = secrets.GetOpenWeatherMapCountryCode()
-var apiKey = secrets.GetOpenWeatherMapAPIKey()
+var zipCode = config.GetOpenWeatherMapPostCode()
+var countryCode = config.GetOpenWeatherMapCountryCode()
+var apiKey = config.GetOpenWeatherMapAPIKey()
 
 var queryURL = "https://api.openweathermap.org/data/2.5/forecast?zip=" + zipCode + "," + countryCode + "&appid=" + apiKey + "&units=metric"
 
