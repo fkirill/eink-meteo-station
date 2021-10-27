@@ -73,10 +73,10 @@ var configPageTemplateText = `
         <option value="interval"{{ if eq .Type "interval"}} selected{{end}}>Interval</option>
       </select>
       <br />
-      <input type="checkbox" id="public_holiday" name="public_holiday" value="true"{{ if .IsPublicHoliday }} checked{{end}} />
+      <input type="checkbox" id="public_holiday" name="special_days.{{.Index}}.public_holiday" value="true"{{ if .IsPublicHoliday }} checked{{end}} />
       <label for="public_holiday">Public holiday</label>
       <br />
-      <input type="checkbox" id="school_holiday" name="school_holiday" value="true"{{ if .IsSchoolHoliday }} checked{{end}} />
+      <input type="checkbox" id="school_holiday" name="special_days.{{.Index}}.school_holiday" value="true"{{ if .IsSchoolHoliday }} checked{{end}} />
       <label for="public_holiday">School holiday</label>
       <br />
       Start date day: <input type="number" min="1" max="31" name="special_days.{{.Index}}.start_day" value="{{.StartDateDay}}" />
@@ -303,8 +303,8 @@ func (ws *webServer) setSpecialDays(r *http.Request) {
 				ws.message += "; Warning: start date must be before end date"
 			}
 		}
-		isPublicHolidayStr := r.FormValue("public_holiday")
-		isSchoolHolidayStr := r.FormValue("school_holiday")
+		isPublicHolidayStr := r.FormValue(fmt.Sprintf("special_days.%d.public_holiday", ws.specialDays[i].Index))
+		isSchoolHolidayStr := r.FormValue(fmt.Sprintf("special_days.%d.school_holiday", ws.specialDays[i].Index))
 		ws.specialDays[i].IsPublicHoliday = isPublicHolidayStr == "true"
 		ws.specialDays[i].IsSchoolHoliday = isSchoolHolidayStr == "true"
 	}

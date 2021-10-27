@@ -49,7 +49,7 @@ func main() {
 		[]renderable.Renderable{forecastView, calendarView, clockView, temperatureView, pressureView, daylightView},
 		false)
 
-	configApi := newConfigApi(multiRenderable)
+	configApi := newConfigApi(multiRenderable, calendarView)
 	ws := webui.NewWebServer(configApi)
 	go ws.Start()
 
@@ -159,11 +159,13 @@ func writeShort(w io.Writer, i uint16) {
 }
 
 type configApi struct {
-	multiRenderable renderable.Renderable
+	multiRenderable    renderable.Renderable
+	calendarRenderable renderable.Renderable
 }
 
 func (c configApi) SetSpecialDays(specialDays []config.SpecialDayOrInterval) {
 	config.SetSpecialDays(specialDays)
+	c.calendarRenderable.RedrawNow()
 }
 
 func (c configApi) GetSpecialDays() []config.SpecialDayOrInterval {
@@ -215,6 +217,6 @@ func (c configApi) SetPressureSensorName(sensorName string) {
 	config.SetPressureSensor(sensorName)
 }
 
-func newConfigApi(multiRenderable renderable.Renderable) webui.ConfigApi {
-	return &configApi{multiRenderable: multiRenderable}
+func newConfigApi(multiRenderable, calendarRenderable renderable.Renderable) webui.ConfigApi {
+	return &configApi{multiRenderable: multiRenderable, calendarRenderable: calendarRenderable}
 }

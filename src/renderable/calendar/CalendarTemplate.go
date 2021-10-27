@@ -37,7 +37,7 @@ type calendarData struct {
 	CurrentDay string
 	DayHeaders []dayHeader // always 7 elements
 	Rows       []calendarDataRow
-	Legend     string
+	Legend     template.HTML
 }
 
 var weekdayNames = []dayHeader{
@@ -115,7 +115,7 @@ func createCalendarData(year int, month time.Month, currentDay int, specialDays 
 		Rows:       rows,
 		CurrentDay: currentDayStr,
 		DayHeaders: weekdayNames,
-		Legend:     legend,
+		Legend:     template.HTML(legend),
 	}, nil
 }
 
@@ -313,21 +313,21 @@ func calendarLegend(year int, month time.Month, specialDays []config.SpecialDayO
 				res +="; "
 			}
 			if sdp.Type != "interval" {
-				res += fmt.Sprintf("%d %s", day.Day(), sdp.DisplayText)
+				res += fmt.Sprintf("%d&nbsp;%s", day.Day(), sdp.DisplayText)
 			} else {
 				startDateStr := ""
 				if sdp.StartDateMonth != int(month) {
-					startDateStr = fmt.Sprintf("%d %s", sdp.StartDateDay, time.Month(sdp.StartDateMonth).String()[0:2])
+					startDateStr = fmt.Sprintf("%d&nbsp;%s", sdp.StartDateDay, time.Month(sdp.StartDateMonth).String()[0:2])
 				} else {
 					startDateStr = strconv.Itoa(sdp.StartDateDay)
 				}
 				endDateStr := ""
 				if sdp.EndDateMonth != int(month) {
-					endDateStr = fmt.Sprintf("%d %s", sdp.EndDateDay, time.Month(sdp.EndDateMonth).String()[0:2])
+					endDateStr = fmt.Sprintf("%d&nbsp;%s", sdp.EndDateDay, time.Month(sdp.EndDateMonth).String()[0:2])
 				} else {
 					endDateStr = strconv.Itoa(sdp.EndDateDay)
 				}
-				res += fmt.Sprintf("%s - %s %s", startDateStr, endDateStr, sdp.DisplayText)
+				res += fmt.Sprintf("%s&nbsp;-&nbsp;%s&nbsp;%s", startDateStr, endDateStr, sdp.DisplayText)
 			}
 		}
 		day = day.AddDate(0, 0, 1)
