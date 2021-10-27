@@ -78,7 +78,8 @@
 }
 
 .important {
-    background: #888;
+    color: #fff;
+    background: #666;
 }
 
 .calendarLegend {
