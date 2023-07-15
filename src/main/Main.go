@@ -18,7 +18,7 @@ import (
 	"webui"
 )
 
-var pathToDisplayDriverProcess = "/home/pi/epaper/bcm2835-1.68/IT8951/IT8951/IT8951"
+var pathToDisplayDriverProcess = "~/eink-screen-driver/IT8951"
 
 var first = true
 
@@ -79,23 +79,23 @@ func main() {
 		}
 		displayMode := multiRenderable.DisplayMode()
 		multiRenderable.RedrawFinished()
-		rects, err := diffRenderer.SingleRenderPass(multiRenderable.Raster())
+		rect, err := diffRenderer.SingleRenderPass(multiRenderable.Raster())
 		if err != nil {
 			println("Diff render failed")
 			panic(err)
 		}
-		if len(rects) == 0 {
+		if rect.Empty() {
 			continue
 		}
-		rects[0] = alignRectangles(rects[0], size.X)
-		compressed, err := renderable.CompressRasterTo4bpp(size, multiRenderable.Raster(), true)
+		alignRectangles(rect, size.X)
+		compressed, err := renderable.CompressRasterTo4bpp(rect, size, multiRenderable.Raster(), true)
 		if err != nil {
 			println("Image compression failed")
 			panic(err)
 		}
 		if first {
 			displayMode = 2
-			rects[0] = image.Rectangle{Max: size}
+			rect = image.Rectangle{Max: size}
 			first = false
 		}
 		// full redraw at midnight
@@ -103,9 +103,9 @@ func main() {
 		if date != currentDate {
 			currentDate = date
 			displayMode = 2
-			rects[0] = image.Rectangle{Max: size}
+			rect = image.Rectangle{Max: size}
 		}
-		buffer := writeImageFrame(size, rects, displayMode, compressed)
+		buffer := writeImageFrame(rect, displayMode, compressed)
 		_, err = writer.Write(buffer.Bytes())
 		if err != nil {
 			panic(err)
@@ -113,26 +113,23 @@ func main() {
 	}
 }
 
-func writeImageFrame(size image.Point, rects []image.Rectangle, displayMode int, compressed []byte) bytes.Buffer {
+func writeImageFrame(rect image.Rectangle, displayMode int, compressed []byte) bytes.Buffer {
 	buffer := bytes.Buffer{}
-	buffer.WriteByte(0)                            // preamble
-	buffer.WriteByte(1)                            // preamble
-	buffer.WriteByte(2)                            // preamble
-	buffer.WriteByte(3)                            // preamble
-	buffer.WriteByte(4)                            // preamble
-	buffer.WriteByte(5)                            // preamble
-	buffer.WriteByte(6)                            // preamble
-	buffer.WriteByte(7)                            // preamble
-	buffer.WriteByte(0)                            // shouldExit
-	writeShort(&buffer, uint16(size.X))            // image width
-	writeShort(&buffer, uint16(size.Y))            // image height
-	buffer.WriteByte(byte(len(rects)))             // # of rectangles
-	writeShort(&buffer, uint16(rects[0].Min.X))    // rectangle[0].x
-	writeShort(&buffer, uint16(rects[0].Min.Y))    // rectangle[0].y
-	writeShort(&buffer, uint16(rects[0].Size().X)) // rectangle[0].w
-	writeShort(&buffer, uint16(rects[0].Size().Y)) // rectangle[0].h
-	buffer.WriteByte(byte(displayMode))            // rectangle[0].displayMode
-	buffer.Write(compressed)
+	buffer.WriteByte(0)                     // preamble
+	buffer.WriteByte(1)                     // preamble
+	buffer.WriteByte(2)                     // preamble
+	buffer.WriteByte(3)                     // preamble
+	buffer.WriteByte(4)                     // preamble
+	buffer.WriteByte(5)                     // preamble
+	buffer.WriteByte(6)                     // preamble
+	buffer.WriteByte(7)                     // preamble
+	buffer.WriteByte(0)                     // shouldExit
+	writeShort(&buffer, uint16(rect.Dx()))  // image width
+	writeShort(&buffer, uint16(rect.Dy()))  // image height
+	writeShort(&buffer, uint16(rect.Min.X)) // image startX
+	writeShort(&buffer, uint16(rect.Min.Y)) // image startY
+	buffer.WriteByte(byte(displayMode))     // displayMode
+	buffer.Write(compressed)                // image data
 	return buffer
 }
 

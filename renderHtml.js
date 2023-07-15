@@ -24,9 +24,9 @@ const delay = (millis) => {
         args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
     const page = await browser.newPage();
-    await page.setViewport({width: viewportWidth, height: viewportHeight})
+    await page.setViewport({ width: viewportWidth, height: viewportHeight })
     await page.goto("file://" + sourceHtmlFile);
     await delay(1000);
-    await page.screenshot({path: targetPngFile});
+    await page.screenshot({ path: targetPngFile });
     await browser.close();
 })();

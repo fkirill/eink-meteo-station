@@ -4,7 +4,7 @@ const puppeteer = require("puppeteer");
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   await page.setViewport({ width: 1872, height: 1404, deviceScaleFactor: 1 });
-  await page.goto("file:///Users/kfr/IdeaProjects/image-compare/time.html");
+  await page.goto("file:///Users/kirillfrolov/eink-meteo-station/time.html");
   const minutes = await page.$("#minutes");
   const minutesBox = await minutes.boundingBox();
   const seconds = await page.$("#seconds");

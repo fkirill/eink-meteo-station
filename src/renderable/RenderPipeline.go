@@ -7,7 +7,7 @@ import (
 )
 
 type DiffRenderer interface {
-	SingleRenderPass(raster []byte) ([]image.Rectangle, error)
+	SingleRenderPass(raster []byte) (image.Rectangle, error)
 }
 
 func NewDiffRenderer(size image.Point) DiffRenderer {
@@ -19,23 +19,23 @@ type renderer struct {
 	lastKnownImage []byte
 }
 
-func (r *renderer) SingleRenderPass(raster []byte) ([]image.Rectangle, error) {
+func (r *renderer) SingleRenderPass(raster []byte) (image.Rectangle, error) {
 	// first pass, just accept the whole image as the new one
 	buf := make([]byte, len(raster), len(raster))
 	copy(buf, raster)
 	if r.lastKnownImage == nil {
 		r.lastKnownImage = buf
-		return []image.Rectangle{utils.BoundingBox(image.Point{}, r.size)}, nil
+		return utils.BoundingBox(image.Point{}, r.size), nil
 	}
 	rectangle, err := r.calculateDiffPoints(r.lastKnownImage, raster)
 	r.lastKnownImage = buf
 	if err != nil {
-		return nil, err
+		return image.Rectangle{}, err
 	}
 	if rectangle == nil {
-		return []image.Rectangle{}, nil
+		return image.Rectangle{}, nil
 	}
-	return []image.Rectangle{*rectangle}, nil
+	return *rectangle, nil
 }
 
 func (r *renderer) calculateDiffPoints(image1, image2 []byte) (*image.Rectangle, error) {
