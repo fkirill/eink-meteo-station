@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"image"
 	"io"
+	"io/ioutil"
 	"os/exec"
 	"renderable"
 	"renderable/calendar"
@@ -88,16 +89,6 @@ func main() {
 			continue
 		}
 		alignRectangles(rect, size.X)
-		compressed, err := renderable.CompressRasterTo4bpp(rect, size, multiRenderable.Raster(), true)
-		if err != nil {
-			println("Image compression failed")
-			panic(err)
-		}
-		if first {
-			displayMode = 2
-			rect = image.Rectangle{Max: size}
-			first = false
-		}
 		// full redraw at midnight
 		date := timeProvider.LocalNow().Truncate(24 * time.Hour)
 		if date != currentDate {
@@ -105,7 +96,18 @@ func main() {
 			displayMode = 2
 			rect = image.Rectangle{Max: size}
 		}
+		if first {
+			displayMode = 2
+			rect = image.Rectangle{Max: size}
+			first = false
+		}
+		compressed, err := renderable.CompressRasterTo4bpp(rect, size, multiRenderable.Raster(), true)
+		if err != nil {
+			println("Image compression failed")
+			panic(err)
+		}
 		buffer := writeImageFrame(rect, displayMode, compressed)
+		ioutil.WriteFile("latest-frame.bin", buffer.Bytes(), 0)
 		_, err = writer.Write(buffer.Bytes())
 		if err != nil {
 			panic(err)
