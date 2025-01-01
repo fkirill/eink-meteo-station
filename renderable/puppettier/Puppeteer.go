@@ -58,7 +58,8 @@ func callPuppeteer(htmlFileName string, pngFileName string, size image.Point) er
 		pwd+"/"+htmlFileName,
 		pwd+"/"+pngFileName,
 		strconv.Itoa(size.X),
-		strconv.Itoa(size.Y))
+		strconv.Itoa(size.Y),
+	)
 	output, err := cmd.CombinedOutput()
 	if len(output) > 0 {
 		print(string(output))
