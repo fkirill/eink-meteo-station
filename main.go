@@ -96,11 +96,14 @@ func main() {
 			rect = image.Rectangle{Max: screenSize}
 			first = false
 		}
-		if rect.Min.X%2 == 1 {
-			rect.Min.X--
+		// important: expand the range slightly to make sure that each row occupies even number of bytes
+		// given that we're talking 4bpp compact encoding it means that the rectangle should start and end
+		// at the X coordinates multiple of 4.
+		if rect.Min.X%4 != 0 {
+			rect.Min.X -= rect.Min.X % 4
 		}
-		if rect.Max.X%2 == 1 {
-			rect.Max.X++
+		if rect.Max.X%4 != 0 {
+			rect.Max.X += 4 - rect.Max.X%4
 		}
 		fullScreen := rect.Size() == screenSize
 		var rectBuffer []byte
@@ -115,7 +118,6 @@ func main() {
 			image.Point{X: rect.Dx(), Y: rect.Dy()},
 			rectBuffer,
 			true,
-			fullScreen,
 		)
 		if err != nil {
 			println("Image compression failed")
