@@ -17,24 +17,27 @@ type SunsetSunriseData struct {
 }
 
 type sunriseSunsetRenderable struct {
-	offset             image.Point
-	size               image.Point
-	raster             []byte
-	nextRedrawDateTime time.Time
-	timeProvider       utils.TimeProvider
+	latitude, longitude float64
+	offset              image.Point
+	size                image.Point
+	raster              []byte
+	nextRedrawDateTime  time.Time
+	timeProvider        utils.TimeProvider
 }
 
 func (s *sunriseSunsetRenderable) RedrawNow() {
 	s.nextRedrawDateTime = s.timeProvider.UtcNow()
 }
 
-func NewSunriseSunsetRenderable(offset image.Point, timeProvider utils.TimeProvider) renderable.Renderable {
+func NewSunriseSunsetRenderable(offset image.Point, timeProvider utils.TimeProvider, latitude, longitude float64) renderable.Renderable {
 	size := image.Point{X: 420, Y: 400}
 	raster := make([]byte, size.X*size.Y, size.X*size.Y)
 	for i := range raster {
 		raster[i] = 0xff
 	}
 	return &sunriseSunsetRenderable{
+		latitude:           latitude,
+		longitude:          longitude,
 		offset:             offset,
 		size:               size,
 		raster:             raster,
@@ -67,15 +70,13 @@ func (s *sunriseSunsetRenderable) RedrawFinished() {
 	s.nextRedrawDateTime = s.timeProvider.LocalNow().Truncate(time.Hour*24).AddDate(0, 0, 1).UTC()
 }
 
-const picnicPointLatitude = -33.969526
-const piclicPointLongitude = 150.998711
-
 func (s *sunriseSunsetRenderable) Render() error {
 	now := time.Now()
 	_, tzOffset := now.Zone()
 	timeOffsetInHours := float64(tzOffset) / 3600.0
 
-	sunset := NewSunSet(picnicPointLatitude, piclicPointLongitude, timeOffsetInHours)
+	//sunset := NewSunSet(picnicPointLatitude, picnicPointLongitude, timeOffsetInHours)
+	sunset := NewSunSet(s.latitude, s.longitude, timeOffsetInHours)
 	sunset.SetCurrentDate(s.nextRedrawDateTime.Year(), int(s.nextRedrawDateTime.Month()), s.nextRedrawDateTime.Day())
 	sunriseTimeMinutes := sunset.CalcSunrise()
 	sunsetTimeMinutes := sunset.CalcSunset()

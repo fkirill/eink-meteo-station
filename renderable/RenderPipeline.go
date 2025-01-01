@@ -68,8 +68,9 @@ func (r *renderer) calculateDiffPoints(image1, image2 []byte) (image.Rectangle, 
 	if !different {
 		return image.Rectangle{}, nil
 	}
-	return image.Rectangle{
+	rect := image.Rectangle{
 		Min: image.Point{X: minX, Y: minY},
 		Max: image.Point{X: maxX, Y: maxY},
-	}, nil
+	}
+	return rect, nil
 }

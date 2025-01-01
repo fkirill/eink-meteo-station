@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fkirill.org/eink-meteo-station/renderable/utils"
 	"image"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strconv"
@@ -13,7 +12,7 @@ import (
 func RenderInPuppeteer(html, filePrefix string, size image.Point) ([]byte, error) {
 	htmlFileName := filePrefix + ".html"
 	outputFileName := filePrefix + ".png"
-	err := ioutil.WriteFile(htmlFileName, []byte(html), 0755)
+	err := os.WriteFile(htmlFileName, []byte(html), 0755)
 	if err != nil {
 		return nil, err
 	}

@@ -50,7 +50,7 @@ var weekdayNames = []dayHeader{
 	{"Sun", true},
 }
 
-func createCalendarData(year int, month time.Month, currentDay int, specialDays []config.SpecialDayOrInterval) (*calendarData, error) {
+func createCalendarData(year int, month time.Month, currentDay int, specialDays []*config.SpecialDayOrInterval) (*calendarData, error) {
 	if year < 1900 || year > 2100 {
 		return nil, errors.New("wrong Year")
 	}
@@ -196,7 +196,7 @@ func initTemplates() error {
 	return nil
 }
 
-func renderCurrentMonth(year int, month time.Month, currentDay int, specialDays []config.SpecialDayOrInterval, template *template.Template) (string, error) {
+func renderCurrentMonth(year int, month time.Month, currentDay int, specialDays []*config.SpecialDayOrInterval, template *template.Template) (string, error) {
 	data, err := createCalendarData(year, month, currentDay, specialDays)
 	if err != nil {
 		return "", err
@@ -217,7 +217,7 @@ func RenderCurrentMonthHtml(year int, month time.Month, currentDay int) (string,
 	return renderCurrentMonth(year, month, currentDay, config.GetSpecialDays(), currentMonthHtmlTemplate)
 }
 
-func dailySpecialDays(year int, month time.Month, specialDays []config.SpecialDayOrInterval) []*config.SpecialDayOrInterval {
+func dailySpecialDays(year int, month time.Month, specialDays []*config.SpecialDayOrInterval) []*config.SpecialDayOrInterval {
 	// covers days for all months (31 day max), we don't use 0-th element, so all normal month day numbers apply
 	res := make([]*config.SpecialDayOrInterval, 32, 32)
 	day := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
@@ -225,18 +225,18 @@ func dailySpecialDays(year int, month time.Month, specialDays []config.SpecialDa
 		var sdp *config.SpecialDayOrInterval = nil
 		for _, sd := range specialDays {
 			if sd.Type == "once_off" && sd.StartDateYear == year && sd.StartDateMonth == int(month) && sd.StartDateDay == day.Day() {
-				sdp = &sd
+				sdp = sd
 				break
 			}
 			if sd.Type == "annual" && sd.StartDateMonth == int(month) && sd.StartDateDay == day.Day() {
-				sdp = &sd
+				sdp = sd
 				break
 			}
 			if sd.Type == "interval" {
 				startDate := time.Date(sd.StartDateYear, time.Month(sd.StartDateMonth), sd.StartDateDay, 0, 0, 0, 0, time.UTC)
 				endDate := time.Date(sd.EndDateYear, time.Month(sd.EndDateMonth), sd.EndDateDay, 0, 0, 0, 0, time.UTC)
 				if startDate == day || endDate == day || (startDate.Before(day) && endDate.After(day)) {
-					sdp = &sd
+					sdp = sd
 					break
 				}
 			}
@@ -274,7 +274,7 @@ func publicHolidays(dailySpecialDays []*config.SpecialDayOrInterval) []bool {
 	return res
 }
 
-func calendarLegend(year int, month time.Month, specialDays []config.SpecialDayOrInterval) string {
+func calendarLegend(year int, month time.Month, specialDays []*config.SpecialDayOrInterval) string {
 	res := ""
 	day := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
 	processedIntervals := []int{}
@@ -282,11 +282,11 @@ func calendarLegend(year int, month time.Month, specialDays []config.SpecialDayO
 		var sdp *config.SpecialDayOrInterval = nil
 		for _, sd := range specialDays {
 			if sd.Type == "once_off" && sd.StartDateYear == year && sd.StartDateMonth == int(month) && sd.StartDateDay == day.Day() {
-				sdp = &sd
+				sdp = sd
 				break
 			}
 			if sd.Type == "annual" && sd.StartDateMonth == int(month) && sd.StartDateDay == day.Day() {
-				sdp = &sd
+				sdp = sd
 				break
 			}
 			if sd.Type == "interval" {
@@ -301,7 +301,7 @@ func calendarLegend(year int, month time.Month, specialDays []config.SpecialDayO
 						}
 					}
 					if !alreadyProcessed {
-						sdp = &sd
+						sdp = sd
 						processedIntervals = append(processedIntervals, sd.Index)
 					}
 					break

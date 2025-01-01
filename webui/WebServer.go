@@ -17,7 +17,7 @@ type renderData struct {
 	InternalHumiditySensor    string
 	ExternalHumiditySensor    string
 	PressureSensor            string
-	SpecialDays               []config.SpecialDayOrInterval
+	SpecialDays               []*config.SpecialDayOrInterval
 }
 
 var configPageTemplateText = `
@@ -151,8 +151,8 @@ type ConfigApi interface {
 	GetExternalTemperatureSensorName() string
 	GetExternalHumiditySensorName() string
 	GetPressureSensorName() string
-	SetSpecialDays(specialDays []config.SpecialDayOrInterval)
-	GetSpecialDays() []config.SpecialDayOrInterval
+	SetSpecialDays(specialDays []*config.SpecialDayOrInterval)
+	GetSpecialDays() []*config.SpecialDayOrInterval
 }
 
 var tmpl *template.Template
@@ -171,7 +171,7 @@ type WebServer interface {
 
 type webServer struct {
 	configApi   ConfigApi
-	specialDays []config.SpecialDayOrInterval
+	specialDays []*config.SpecialDayOrInterval
 	message     string
 }
 
@@ -321,7 +321,7 @@ func (ws *webServer) removeSpecialDay(r *http.Request) {
 	specialDayIndexStr := r.FormValue("special_day_index")
 	specialDayIndex, err := strconv.Atoi(specialDayIndexStr)
 	if err == nil {
-		newSpecialDays := make([]config.SpecialDayOrInterval, 0)
+		newSpecialDays := make([]*config.SpecialDayOrInterval, 0)
 		for _, sd := range ws.specialDays {
 			if sd.Index != specialDayIndex {
 				newSpecialDays = append(newSpecialDays, sd)
@@ -337,7 +337,7 @@ func (ws *webServer) removeSpecialDay(r *http.Request) {
 
 func (ws *webServer) addSpecialDay() {
 	today := time.Now().In(time.UTC)
-	ws.specialDays = append(ws.specialDays, config.SpecialDayOrInterval{
+	ws.specialDays = append(ws.specialDays, &config.SpecialDayOrInterval{
 		StartDateDay:   today.Day(),
 		StartDateMonth: int(today.Month()),
 		StartDateYear:  today.Year(),

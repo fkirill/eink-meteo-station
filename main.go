@@ -7,15 +7,21 @@ import (
 	"fkirill.org/eink-meteo-station/renderable/calendar"
 	"fkirill.org/eink-meteo-station/renderable/clock"
 	"fkirill.org/eink-meteo-station/renderable/config"
+	"fkirill.org/eink-meteo-station/renderable/forecast"
+	"fkirill.org/eink-meteo-station/renderable/pressure"
+	"fkirill.org/eink-meteo-station/renderable/sunset_sunrise"
+	"fkirill.org/eink-meteo-station/renderable/temperature"
 	"fkirill.org/eink-meteo-station/renderable/utils"
 	"fkirill.org/eink-meteo-station/webui"
 	"image"
+	"image/png"
+	"os"
 	"time"
 )
 
 var pathToDisplayDriverProcess = "~/eink-screen-driver/IT8951"
 
-var first = true
+var first = false
 
 func main() {
 	//timeProvider := utils.NewTestTimeProvider(time.Now().Truncate(24 * time.Hour).Add(-10 * time.Second))
@@ -27,30 +33,29 @@ func main() {
 		panic(err)
 	}
 	w, h := screen.GetScreenDimensions()
-
-	clib.EPD_IT8951_Clear_Refresh(w, h, screen.GetBufferAddress(), clib.GC16_Mode)
 	screenSize := image.Point{X: int(w), Y: int(h)}
 	clockView, err := clock.NewClockRenderable(image.Point{}, timeProvider)
 	if err != nil {
 		panic(err)
 	}
 	calendarView := calendar.NewCalendarRenderable(image.Point{Y: 280}, image.Point{X: 962, Y: 1120}, timeProvider)
-	//temperatureView := temperature.NewHATemperatureView(
-	//	image.Point{1000, 0},
-	//	timeProvider,
-	//	config.GetInternalTemperatureSensor,
-	//	config.GetExternalTemperatureSensor,
-	//	config.GetInternalHumiditySensor,
-	//	config.GetExternalHumiditySensor,
-	//)
-	//pressureView := pressure.NewHAPressureView(image.Point{1000, 500}, timeProvider, config.GetPressureSensor)
-	//daylightView := sunset_sunrise.NewSunriseSunsetRenderable(image.Point{1450, 500}, timeProvider)
-	//forecastView := forecast.NewForecastRenderable(image.Point{X: 950, Y: 900}, timeProvider)
+	temperatureView := temperature.NewHATemperatureView(
+		image.Point{1000, 0},
+		timeProvider,
+		config.GetInternalTemperatureSensor,
+		config.GetExternalTemperatureSensor,
+		config.GetInternalHumiditySensor,
+		config.GetExternalHumiditySensor,
+	)
+	pressureView := pressure.NewHAPressureView(image.Point{1000, 500}, timeProvider, config.GetPressureSensor)
+	latitude, longitude := config.GetDaylightCoordinates()
+	daylightView := sunset_sunrise.NewSunriseSunsetRenderable(image.Point{1450, 500}, timeProvider, latitude, longitude)
+	forecastView := forecast.NewForecastRenderable(image.Point{X: 950, Y: 900}, timeProvider)
 	multiRenderable, err := renderable.NewMultiRenderable(
 		image.Point{},
 		screenSize,
-		//[]renderable.Renderable{forecastView, calendarView, clockView, temperatureView, pressureView, daylightView},
-		[]renderable.Renderable{clockView},
+		[]renderable.Renderable{forecastView, calendarView, clockView, temperatureView, pressureView, daylightView},
+		//[]renderable.Renderable{forecastView, calendarView, temperatureView, pressureView, daylightView},
 		false)
 
 	configApi := newConfigApi(multiRenderable, calendarView)
@@ -91,26 +96,57 @@ func main() {
 			rect = image.Rectangle{Max: screenSize}
 			first = false
 		}
-		rect = alignRectangles(rect, screenSize.X)
-		compressed, err := renderable.CompressRasterTo4bpp(rect, screenSize, multiRenderable.Raster(), true)
+		if rect.Min.X%2 == 1 {
+			rect.Min.X--
+		}
+		if rect.Max.X%2 == 1 {
+			rect.Max.X++
+		}
+		fullScreen := rect.Size() == screenSize
+		var rectBuffer []byte
+		if fullScreen {
+			rectBuffer = multiRenderable.Raster()
+		} else {
+			rectBuffer = renderable.CutRectangle(rect, screenSize, multiRenderable.Raster())
+		}
+
+		compressed, err := renderable.CompressRasterTo4bpp(
+			image.Rectangle{Max: image.Point{X: rect.Dx(), Y: rect.Dy()}},
+			image.Point{X: rect.Dx(), Y: rect.Dy()},
+			rectBuffer,
+			true,
+			fullScreen,
+		)
 		if err != nil {
 			println("Image compression failed")
 			panic(err)
 		}
-		err = screen.WriteScreenAreaRefreshMode(rect, compressed, displayMode)
+		displayRect := alignRectangles(rect, screenSize.X)
+		err = screen.WriteScreenAreaRefreshMode(displayRect, compressed, displayMode)
 		if err != nil {
 			panic(err)
 		}
 	}
 }
 
+func writePng(compressed []byte, size image.Point) {
+	img := &image.Gray{
+		Pix:    compressed,
+		Stride: size.X,
+		Rect:   image.Rectangle{Max: image.Point{X: size.X - 1, Y: size.Y - 1}},
+	}
+	buf := &bytes.Buffer{}
+	err := png.Encode(buf, img)
+	if err != nil {
+		panic(err)
+	}
+	err = os.WriteFile(time.Now().Format(time.RFC3339)+".png", buf.Bytes(), 0644)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func alignRectangles(r image.Rectangle, width int) image.Rectangle {
-	if r.Min.X%2 == 1 {
-		r.Min.X--
-	}
-	if r.Max.X%2 == 1 {
-		r.Max.X++
-	}
 	r.Min.X = width - r.Min.X
 	r.Max.X = width - r.Max.X
 	temp := r.Min.X
@@ -124,12 +160,12 @@ type configApi struct {
 	calendarRenderable renderable.Renderable
 }
 
-func (c configApi) SetSpecialDays(specialDays []config.SpecialDayOrInterval) {
+func (c configApi) SetSpecialDays(specialDays []*config.SpecialDayOrInterval) {
 	config.SetSpecialDays(specialDays)
 	c.calendarRenderable.RedrawNow()
 }
 
-func (c configApi) GetSpecialDays() []config.SpecialDayOrInterval {
+func (c configApi) GetSpecialDays() []*config.SpecialDayOrInterval {
 	return config.GetSpecialDays()
 }
 
@@ -176,6 +212,10 @@ func (c configApi) SetExternalHumiditySensorName(sensorName string) {
 
 func (c configApi) SetPressureSensorName(sensorName string) {
 	config.SetPressureSensor(sensorName)
+}
+
+func (c configApi) GetDaylightCoordinates() (float64, float64) {
+	return config.GetDaylightCoordinates()
 }
 
 func newConfigApi(multiRenderable, calendarRenderable renderable.Renderable) webui.ConfigApi {

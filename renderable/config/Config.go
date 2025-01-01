@@ -3,7 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 )
 
 const configFileName = "config.json"
@@ -26,10 +26,16 @@ type openWeatherMapSettings struct {
 	CountryCode string `json:"country_code"`
 }
 
+type daylightSettings struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
 type configData struct {
-	HomeAssistant  homeAssistantSettings  `json:"home_assistant"`
-	OpenWeatherMap openWeatherMapSettings `json:"open_weather_map"`
-	SpecialDays    []SpecialDayOrInterval `json:"special_days"`
+	HomeAssistant    homeAssistantSettings   `json:"home_assistant"`
+	OpenWeatherMap   openWeatherMapSettings  `json:"open_weather_map"`
+	SpecialDays      []*SpecialDayOrInterval `json:"special_days"`
+	DaylightSettings daylightSettings        `json:"daylight_settings"`
 }
 
 type SpecialDayOrInterval struct {
@@ -54,7 +60,7 @@ func readConfig() {
 		return
 	}
 	config = &configData{}
-	buf, err := ioutil.ReadFile(configFileName)
+	buf, err := os.ReadFile(configFileName)
 	if err != nil {
 		panic(fmt.Errorf("error reading config file: %v\n", err))
 	}
@@ -69,7 +75,7 @@ func saveConfig() {
 	if err != nil {
 		panic(fmt.Errorf("error serializing config: %v\n", err))
 	}
-	err = ioutil.WriteFile(configFileName, data, 0777)
+	err = os.WriteFile(configFileName, data, 0777)
 	if err != nil {
 		panic(fmt.Errorf("error writitng to config file: %v\n", err))
 	}
@@ -152,14 +158,26 @@ func SetPressureSensor(sensorName string) {
 	saveConfig()
 }
 
-func GetSpecialDays() []SpecialDayOrInterval {
+func GetSpecialDays() []*SpecialDayOrInterval {
 	if config.SpecialDays == nil {
-		return []SpecialDayOrInterval{}
+		return []*SpecialDayOrInterval{}
 	}
 	return config.SpecialDays
 }
 
-func SetSpecialDays(specialDays []SpecialDayOrInterval) {
+func SetSpecialDays(specialDays []*SpecialDayOrInterval) {
 	config.SpecialDays = specialDays
 	saveConfig()
+}
+
+const picnicPointLatitude = -33.969526
+const picnicPointLongitude = 150.998711
+const moscowLatitude = 55.643940
+const moscowLongitude = 37.528860
+
+func GetDaylightCoordinates() (float64, float64) {
+	if config.DaylightSettings.Latitude == 0 && config.DaylightSettings.Longitude == 0 {
+		return moscowLatitude, moscowLongitude
+	}
+	return config.DaylightSettings.Latitude, config.DaylightSettings.Longitude
 }
