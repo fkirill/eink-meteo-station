@@ -50,7 +50,7 @@ func main() {
 	pressureView := pressure.NewHAPressureView(image.Point{1000, 500}, timeProvider, config.GetPressureSensor)
 	latitude, longitude := config.GetDaylightCoordinates()
 	daylightView := sunset_sunrise.NewSunriseSunsetRenderable(image.Point{1450, 500}, timeProvider, latitude, longitude)
-	forecastView := forecast.NewForecastRenderable(image.Point{X: 950, Y: 900}, timeProvider)
+	forecastView := forecast.NewForecastRenderable(image.Point{X: 1000, Y: 900}, timeProvider)
 	multiRenderable, err := renderable.NewMultiRenderable(
 		image.Point{},
 		screenSize,
@@ -95,6 +95,12 @@ func main() {
 			displayMode = clib.GC16_Mode
 			rect = image.Rectangle{Max: screenSize}
 			first = false
+		}
+		if config.GetSimpleRefresh() {
+			clib.EPD_IT8951_Clear_Refresh(uint16(screenSize.X), uint16(screenSize.Y), screen.GetBufferAddress(), clib.INIT_Mode)
+			displayMode = clib.GC16_Mode
+			rect = image.Rectangle{Max: screenSize}
+			config.ResetSimpleRefresh()
 		}
 		// important: expand the range slightly to make sure that each row occupies even number of bytes
 		// given that we're talking 4bpp compact encoding it means that the rectangle should start and end

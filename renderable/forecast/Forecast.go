@@ -22,7 +22,7 @@ func (f *forecastRenderable) RedrawNow() {
 	f.nextRedrawDateTime = f.timeProvider.UtcNow()
 }
 
-var forecastSize = image.Point{X: 920, Y: 500}
+var forecastSize = image.Point{X: 871, Y: 500}
 
 func NewForecastRenderable(offset image.Point, timeProvider utils.TimeProvider) renderable.Renderable {
 	raster := make([]byte, forecastSize.X*forecastSize.Y, forecastSize.X*forecastSize.Y)

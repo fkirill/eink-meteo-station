@@ -3,7 +3,7 @@ package forecast
 import (
 	"encoding/json"
 	"fkirill.org/eink-meteo-station/renderable/config"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"sort"
@@ -17,6 +17,7 @@ var apiKey = config.GetOpenWeatherMapAPIKey()
 var queryURL = "https://api.openweathermap.org/data/2.5/forecast?zip=" + zipCode + "," + countryCode + "&appid=" + apiKey + "&units=metric"
 
 // See https://openweathermap.org/forecast5#parameter for documentation
+// https://api.openweathermap.org/data/2.5/forecast?zip=117279,ru&appid=2ee6452e91b9d3ee292658f0d88fb9ac&units=metric
 
 type latLon struct {
 	Lat float64 `json:"lat"`
@@ -71,6 +72,7 @@ type weatherDataItem struct {
 	Visibility int                      `json:"visibility"`
 	Pop        float64                  `json:"pop"`
 	Rain       map[string]float64       `json:"rain"`
+	Snow       map[string]float64       `json:"snow"`
 	Sys        weatherDataItemSys       `json:"sys"`
 	Dt_Txt     string                   `json:"dt_txt"`
 }
@@ -86,19 +88,18 @@ type ForecastDataDay struct {
 	Date                 time.Time
 	MinTemp              float64
 	MaxTemp              float64
-	MaxChanceOfRain      float64
 	ExpectedRainAmountMm float64
+	ExpectedSnowAmountMm float64
 	MaxWindKmh           float64
 	WeatherType          int
 }
 
 type ForecastDataGraph struct {
-	DateTime     time.Time
-	Temperature  float64
-	Humidity     float64
-	Clouds       float64
-	ChanceOfRain float64
-	WindKmh      float64
+	DateTime    time.Time
+	Temperature float64
+	Humidity    float64
+	Clouds      float64
+	WindKmh     float64
 }
 
 type ForecastDataDaySlice []ForecastDataDay
@@ -129,7 +130,7 @@ func GetWeatherData() (*ForecastData, error) {
 	}
 	defer response.Body.Close()
 	weather := weatherData{}
-	responseData, err := ioutil.ReadAll(response.Body)
+	responseData, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +139,7 @@ func GetWeatherData() (*ForecastData, error) {
 		return nil, err
 	}
 	forecastData, err := transformIntoForecastData(weather)
-	return forecastData, nil
+	return forecastData, err
 }
 
 func transformIntoForecastData(weather weatherData) (*ForecastData, error) {
@@ -154,8 +155,8 @@ func transformIntoForecastData(weather weatherData) (*ForecastData, error) {
 				Date:                 dttm.Truncate(24 * time.Hour),
 				MinTemp:              200,
 				MaxTemp:              -200,
-				MaxChanceOfRain:      0,
 				ExpectedRainAmountMm: 0,
+				ExpectedSnowAmountMm: 0,
 				MaxWindKmh:           -200,
 				WeatherType:          0,
 			}
@@ -163,12 +164,11 @@ func transformIntoForecastData(weather weatherData) (*ForecastData, error) {
 		}
 		clouds, _ := item.Clouds["all"]
 		graphMap[int(item.Dt)] = &ForecastDataGraph{
-			DateTime:     dttm,
-			Temperature:  item.Main.Temp,
-			Humidity:     item.Main.Humidity,
-			Clouds:       clouds,
-			ChanceOfRain: 0,
-			WindKmh:      item.Wind.Speed,
+			DateTime:    dttm,
+			Temperature: item.Main.Temp,
+			Humidity:    item.Main.Humidity,
+			Clouds:      clouds,
+			WindKmh:     item.Wind.Speed,
 		}
 		if curDay.MinTemp > item.Main.Temp {
 			curDay.MinTemp = item.Main.Temp
@@ -177,6 +177,7 @@ func transformIntoForecastData(weather weatherData) (*ForecastData, error) {
 			curDay.MaxTemp = item.Main.Temp
 		}
 		curDay.ExpectedRainAmountMm += item.Rain["3h"]
+		curDay.ExpectedSnowAmountMm += item.Snow["3h"]
 		if curDay.MaxWindKmh < item.Wind.Speed {
 			curDay.MaxWindKmh = item.Wind.Speed
 		}

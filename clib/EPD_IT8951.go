@@ -232,6 +232,11 @@ func EPD_IT8951_4bp_Refresh_Mode(Frame_Buf []uint8, X, Y, W, H uint16, Hold bool
 //
 //void EPD_IT8951_8bp_Refresh(UBYTE *Frame_Buf, UWORD X, UWORD Y, UWORD W, UWORD H, bool Hold, UDOUBLE Target_Memory_Addr);
 
+// void Enhance_Driving_Capability(void);
+func Enhance_Driving_Capability() {
+	C.Enhance_Driving_Capability()
+}
+
 func Epd_Mode(mode uint8) {
 	if mode == 3 {
 		Paint_SetRotate(ROTATE_0)

@@ -7,14 +7,15 @@ import (
 )
 
 type dailyForecast struct {
-	DayOfMonth string // two characters
-	DayOfWeek string // three characters
-	Month string // three characters
-	MinTemp string // two characters
-	MaxTemp string // two characters
+	DayOfMonth   string // two characters
+	DayOfWeek    string // three characters
+	Month        string // three characters
+	MinTemp      string // two characters
+	MaxTemp      string // two characters
 	AmountOfRain string // two characters
-	MaxWind string // two characters
-	WeatherType int
+	AmountOfSnow string // two characters
+	MaxWind      string // two characters
+	WeatherType  int
 }
 
 type forecastTable struct {
@@ -45,6 +46,10 @@ var forecastTemplate = `<html lang="en">
       <tr>
         <td style="font-size: 50px; font-family: 'cartograph'">rain</td>
         {{range .Days}}<td><div style="text-align: center; font-size: 80px; font-family: 'cartograph'">{{.AmountOfRain}}</div></td>{{end}}
+      </tr>
+      <tr>
+        <td style="font-size: 50px; font-family: 'cartograph'">snow</td>
+        {{range .Days}}<td><div style="text-align: center; font-size: 80px; font-family: 'cartograph'">{{.AmountOfSnow}}</div></td>{{end}}
       </tr>
     <tbody>
   </table>
@@ -81,6 +86,7 @@ func convertToTemplateFormat(days []ForecastDataDay) *forecastTable {
 			MinTemp:      strconv.Itoa(int(day.MinTemp)),
 			MaxTemp:      strconv.Itoa(int(day.MaxTemp)),
 			AmountOfRain: strconv.Itoa(int(day.ExpectedRainAmountMm)),
+			AmountOfSnow: strconv.Itoa(int(day.ExpectedSnowAmountMm)),
 			MaxWind:      strconv.Itoa(int(day.MaxWindKmh)),
 			WeatherType:  0,
 		}

@@ -21,6 +21,7 @@
 }
 
 .weekNumHeader {
+    padding-left: 25px;
     width: 148px;
     font-size: 37px;
     text-align: left;
@@ -47,6 +48,7 @@
 }
 
 .weekNumRow {
+    padding-left: 25px;
     font-size: 37px;
     text-align: left;
     background: #ddd;

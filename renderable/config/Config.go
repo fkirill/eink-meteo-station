@@ -176,8 +176,19 @@ const moscowLatitude = 55.643940
 const moscowLongitude = 37.528860
 
 func GetDaylightCoordinates() (float64, float64) {
-	if config.DaylightSettings.Latitude == 0 && config.DaylightSettings.Longitude == 0 {
-		return moscowLatitude, moscowLongitude
-	}
 	return config.DaylightSettings.Latitude, config.DaylightSettings.Longitude
+}
+
+var simpleRefresh = false
+
+func GetSimpleRefresh() bool {
+	return simpleRefresh
+}
+
+func ResetSimpleRefresh() {
+	simpleRefresh = false
+}
+
+func SetSimpleRefresh() {
+	simpleRefresh = true
 }

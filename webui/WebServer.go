@@ -33,6 +33,10 @@ var configPageTemplateText = `
       <input type="hidden" name="command" value="redraw_all"/>
       <button type="submit">Redraw all</button>
     </form>
+    <form action="/" method="post">
+      <input type="hidden" name="command" value="redraw"/>
+      <button type="submit">Redraw</button>
+    </form>
   </div>
   <h1>HomeAssistant sensor names</h1>
   <div>
@@ -181,6 +185,8 @@ func (ws *webServer) mainHandler(w http.ResponseWriter, r *http.Request) {
 		if len(command) > 0 {
 			if command == "redraw_all" {
 				ws.redrawAll()
+			} else if command == "redraw" {
+				ws.redraw()
 			} else if command == "set_sensor_names" {
 				ws.setSensorNames(r)
 			} else if command == "set_special_days" {
@@ -372,4 +378,9 @@ func NewWebServer(configApi ConfigApi) WebServer {
 func (ws *webServer) Start() {
 	http.HandleFunc("/", ws.mainHandler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func (ws *webServer) redraw() {
+	config.SetSimpleRefresh()
+	ws.message = "Refresh queued"
 }
