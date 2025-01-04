@@ -4,3 +4,5 @@ numbers
 config.json
 image-compare
 image-compare-arm
+wire_gen.go
+eink-meteo-station
