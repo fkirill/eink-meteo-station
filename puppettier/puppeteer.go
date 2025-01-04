@@ -6,17 +6,19 @@ import (
 	"image"
 	"os"
 	"os/exec"
+	"path"
 	"strconv"
 )
 
 func RenderInPuppeteer(html, filePrefix string, size image.Point) ([]byte, error) {
-	htmlFileName := filePrefix + ".html"
-	outputFileName := filePrefix + ".png"
+	pwd := utils.GetRootDir()
+	htmlFileName := path.Join(pwd, filePrefix+".html")
+	outputFileName := path.Join(pwd, filePrefix+".png")
 	err := os.WriteFile(htmlFileName, []byte(html), 0755)
 	if err != nil {
 		return nil, err
 	}
-	err = callPuppeteer(htmlFileName, outputFileName, size)
+	err = callPuppeteer(htmlFileName, outputFileName, size, pwd)
 	if err != nil {
 		return nil, err
 	}
@@ -42,24 +44,21 @@ func RenderInPuppeteer(html, filePrefix string, size image.Point) ([]byte, error
 	return raster, nil
 }
 
-func callPuppeteer(htmlFileName string, pngFileName string, size image.Point) error {
+func callPuppeteer(htmlFileName string, pngFileName string, size image.Point, pwd string) error {
 	// we pass 4 parameters to the script:
 	// source HTML file name
 	// target png file name
 	// width of the output image
 	// height of the output image
-	pwd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
 	cmd := exec.Command(
 		"/usr/bin/node",
-		"renderHtml.js",
-		pwd+"/"+htmlFileName,
-		pwd+"/"+pngFileName,
+		path.Join(pwd, "renderHtml.js"),
+		htmlFileName,
+		pngFileName,
 		strconv.Itoa(size.X),
 		strconv.Itoa(size.Y),
 	)
+	cmd.Dir = pwd
 	output, err := cmd.CombinedOutput()
 	if len(output) > 0 {
 		print(string(output))

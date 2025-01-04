@@ -4,9 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"image"
-	"image/color"
-	"image/png"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"slices"
@@ -14,29 +11,6 @@ import (
 
 func BoundingBox(offset, size image.Point) image.Rectangle {
 	return image.Rectangle{Min: offset, Max: image.Point{X: offset.X + size.X, Y: offset.Y + size.Y}}
-}
-
-func WriteImageFromRaster(size image.Point, raster []byte, filename string) error {
-	i := image.NewNRGBA(image.Rectangle{Min: image.Point{}, Max: size})
-	index := 0
-	for y := 0; y < size.Y; y++ {
-		for x := 0; x < size.X; x++ {
-			grayColor := raster[index]
-			c := color.NRGBA{R: grayColor, G: grayColor, B: grayColor, A: 255}
-			i.Set(x, y, c)
-			index++
-		}
-	}
-	pngBuffer := bytes.Buffer{}
-	err := png.Encode(&pngBuffer, i)
-	if err != nil {
-		return err
-	}
-	err = os.WriteFile(filename, pngBuffer.Bytes(), 0755)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func ConvertToGrayScale(img image.Image) ([]byte, error) {
@@ -95,7 +69,7 @@ func ConvertToGrayScale(img image.Image) ([]byte, error) {
 }
 
 func LoadImage(fileName string) (image.Image, error) {
-	content, err := ioutil.ReadFile(fileName)
+	content, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, err
 	}

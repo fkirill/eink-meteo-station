@@ -6,6 +6,7 @@ import (
 	"fkirill.org/eink-meteo-station/renderable/utils"
 	"github.com/rotisserie/eris"
 	"image"
+	"path"
 	"strconv"
 	"time"
 )
@@ -65,7 +66,7 @@ func (c *clockRenderable) loadNumbersAndColon() error {
 		if len(imageNamePart) == 1 {
 			imageNamePart = "0" + imageNamePart
 		}
-		img, err := utils.LoadImage("numbers/num_" + imageNamePart + ".png")
+		img, err := utils.LoadImage(path.Join(utils.GetRootDir(), "numbers/num_"+imageNamePart+".png"))
 		if err != nil {
 			return err
 		}
@@ -75,7 +76,7 @@ func (c *clockRenderable) loadNumbersAndColon() error {
 			return err
 		}
 	}
-	colonImg, err := utils.LoadImage("numbers/colon.png")
+	colonImg, err := utils.LoadImage(path.Join(utils.GetRootDir(), "numbers/colon.png"))
 	if err != nil {
 		return err
 	}

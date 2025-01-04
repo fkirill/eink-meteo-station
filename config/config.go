@@ -4,9 +4,23 @@ import (
 	"encoding/json"
 	"github.com/rotisserie/eris"
 	"os"
+	"path"
 )
 
 const configFileName = "config.json"
+
+func GetRootDir() string {
+	exec := os.Args[0]
+	dir := path.Dir(exec)
+	if dir == "." {
+		curDir, err := os.Getwd()
+		if err != nil {
+			panic(eris.ToString(eris.Wrap(err, "Error getting current dir"), true))
+		}
+		dir = curDir
+	}
+	return dir
+}
 
 type homeAssistantSettings struct {
 	ServerProtocol            string `json:"server_protocol"`
@@ -54,8 +68,9 @@ type SpecialDayOrInterval struct {
 }
 
 func readConfig() (*configData, error) {
+	fileName := path.Join(GetRootDir(), configFileName)
 	config := configData{}
-	buf, err := os.ReadFile(configFileName)
+	buf, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, eris.Wrap(err, "error reading config file")
 	}
@@ -67,11 +82,12 @@ func readConfig() (*configData, error) {
 }
 
 func (c *configApi) saveConfig() {
+	fileName := path.Join(GetRootDir(), configFileName)
 	data, err := json.Marshal(c.config)
 	if err != nil {
 		panic(eris.ToString(eris.Wrap(err, "error serializing config"), true))
 	}
-	err = os.WriteFile(configFileName, data, 0644)
+	err = os.WriteFile(fileName, data, 0644)
 	if err != nil {
 		panic(eris.ToString(eris.Wrap(err, "error writing to config file"), true))
 	}

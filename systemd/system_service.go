@@ -101,7 +101,6 @@ func getStatusCode(commandLine ...string) (int, string, error) {
 
 type TemplateData struct {
 	EinkServiceExecutablePath string
-	EinkServiceDirPath        string
 	Parameters                string
 }
 
@@ -125,8 +124,8 @@ After=network.target auditd.service
 ExecStart={{.EinkServiceExecutablePath}} run {{.Parameters}}
 KillMode=process
 Restart=on-failure
-Type=notify
-RootDirectory={{.EinkServiceDirPath}}
+Type=simple
+User=root
 
 [Install]
 WantedBy=multi-user.target
@@ -140,8 +139,7 @@ WantedBy=multi-user.target
 	}
 	executable := path.Join(curDir, path.Base(os.Args[0]))
 	tmplData := &TemplateData{
-		EinkServiceExecutablePath: path.Base(executable),
-		EinkServiceDirPath:        path.Dir(executable),
+		EinkServiceExecutablePath: executable,
 		Parameters:                strings.Join(parameters, " "),
 	}
 	buf := &bytes.Buffer{}
