@@ -34,7 +34,7 @@ func (h *homeAssistantApi) getBearerToken() string {
 }
 
 func (h *homeAssistantApi) getHAProtocolHostPort() string {
-	return fmt.Sprintf("%s://%s:%s", h.config.GetHAProtocol(), h.config.GetHAHost(), h.config.GetHAPort())
+	return fmt.Sprintf("%s://%s:%d", h.config.GetHAProtocol(), h.config.GetHAHost(), h.config.GetHAPort())
 }
 
 func (h homeAssistantApi) DownloadSensorValueFromHA(sensorId string) (string, error) {
@@ -80,9 +80,8 @@ func (h homeAssistantApi) DownloadSensorHistoryFromHA(sensorId string, startTime
 	}
 	startDateTimeStr := startTime.UTC().Format(time.RFC3339)
 	endDateTimeStr := endTime.UTC().Format(time.RFC3339)
-	req, err := http.NewRequest("GET", "http://192.168.68.110:8123/api/history/period/"+startDateTimeStr+
-		"?filter_entity_id="+sensorId+"&end_time"+endDateTimeStr+"&minimal_response"+significantOnlyStr,
-		nil)
+	url := fmt.Sprintf("%s/api/history/period/%s?filter_entity_id=%s&end_time%s&minimal_response%s", h.getHAProtocolHostPort(), startDateTimeStr, sensorId, endDateTimeStr, significantOnlyStr)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -32,6 +32,11 @@ func (r *renderLoop) Run() error {
 		if timeToNextDraw.Nanoseconds() > 0 {
 			time.Sleep(timeToNextDraw)
 		}
+		if r.configApi.GetRedrawAll() {
+			clib.EPD_IT8951_Clear_Refresh(uint16(screenSize.X), uint16(screenSize.Y), r.einkScreen.GetBufferAddress(), clib.INIT_Mode)
+			r.configApi.ResetRedrawAll()
+			r.multiRenderable.RedrawNow()
+		}
 		err := r.multiRenderable.Render()
 		if err != nil {
 			panic(err)
