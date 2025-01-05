@@ -189,6 +189,9 @@ func formatInt(val float64) string {
 
 func formatFrac(val float64) string {
 	firstFracDigit := int(math.Trunc(math.Trunc(val*10.0) - math.Trunc(val)*10.0))
+	if firstFracDigit < 0 {
+		firstFracDigit = -firstFracDigit
+	}
 	return strconv.Itoa(firstFracDigit)
 }
 
