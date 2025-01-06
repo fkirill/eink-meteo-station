@@ -7,10 +7,10 @@ import (
 	"fkirill.org/eink-meteo-station/renderable"
 	"fkirill.org/eink-meteo-station/renderable/utils"
 	"github.com/rotisserie/eris"
-	"html/template"
 	"image"
 	_ "image/png"
 	"strconv"
+	"text/template"
 	"time"
 )
 

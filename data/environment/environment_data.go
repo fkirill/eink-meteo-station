@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fkirill.org/eink-meteo-station/config"
 	"fkirill.org/eink-meteo-station/data/ha"
+	"fkirill.org/eink-meteo-station/images"
 	"math"
 	"strconv"
 	"time"
@@ -20,6 +21,10 @@ type PressureData struct {
 	PressureBelowNorm bool   // when delta == 0.0, it is considered "above" for display purposes
 	PressureDeltaInt  string // two characters, first may be space if delta <10 mmHg
 	PressureDeltaFrac string // one digit
+	WarningPng        string
+	RisingPng         string
+	FallingPng        string
+	SteadyPng         string
 }
 
 type TemperatureHumidityData struct {
@@ -36,6 +41,12 @@ type TemperatureHumidityData struct {
 	HumidityFalling        bool   // the other two must be false
 	HumiditySteady         bool
 	HundredPercentHumidity bool
+	WarningPng             string
+	ThermometerPng         string
+	RisingPng              string
+	FallingPng             string
+	SteadyPng              string
+	HumidityPng            string
 }
 
 type EnvironmentDataProvider interface {
@@ -97,12 +108,16 @@ func (e *environmentDataProvider) GetPressure() (*PressureData, error) {
 		PressureInt:       pressureInt,
 		PressureFrac:      formatFrac(pressureVal),
 		PressureRising:    pressureRising,
-		PressureFalling:   pressureFalling,
 		PressureSteady:    pressureSteady,
+		PressureFalling:   pressureFalling,
 		PressureAboveNorm: pressureAboveNorm,
 		PressureBelowNorm: !pressureAboveNorm,
 		PressureDeltaInt:  pressureDeltaInt,
 		PressureDeltaFrac: formatFrac(math.Abs(pressureDelta)),
+		WarningPng:        images.Warning_png_src,
+		RisingPng:         images.Rising_png_src,
+		FallingPng:        images.Falling_png_src,
+		SteadyPng:         images.Steady_png_src,
 	}, nil
 }
 
@@ -170,6 +185,12 @@ func (e *environmentDataProvider) getTemperatureHumidity(title, temperatureSenso
 		HumidityFalling:        humidityFalling,
 		HumiditySteady:         humiditySteady,
 		HundredPercentHumidity: hundredPercentHumidity,
+		WarningPng:             images.Warning_png_src,
+		ThermometerPng:         images.Thermometer_png_src,
+		RisingPng:              images.Rising_png_src,
+		FallingPng:             images.Falling_png_src,
+		SteadyPng:              images.Steady_png_src,
+		HumidityPng:            images.Humidity_png_src,
 	}, nil
 }
 

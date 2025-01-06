@@ -5,19 +5,22 @@ import (
 	"fkirill.org/eink-meteo-station/clib"
 	"fkirill.org/eink-meteo-station/config"
 	"fkirill.org/eink-meteo-station/data/daylight"
+	"fkirill.org/eink-meteo-station/images"
 	"fkirill.org/eink-meteo-station/puppettier"
 	"fkirill.org/eink-meteo-station/renderable"
 	"fkirill.org/eink-meteo-station/renderable/utils"
 	"github.com/rotisserie/eris"
-	"html/template"
 	"image"
 	"strconv"
+	"text/template"
 	"time"
 )
 
 type SunsetSunriseData struct {
 	SunriseTime string // five characters
 	SunsetTime  string //  five characters
+	SunrisePng  string
+	SunsetPng   string
 }
 
 type sunriseSunsetRenderable struct {
@@ -106,6 +109,8 @@ func (s *sunriseSunsetRenderable) Render() error {
 	sunriseSunsetData := SunsetSunriseData{
 		SunriseTime: formatTime(sunrise),
 		SunsetTime:  formatTime(sunset),
+		SunrisePng:  images.Sunrise_png_src,
+		SunsetPng:   images.Sunset_png_src,
 	}
 	html, err := s.generateSunriseHtml(&sunriseSunsetData)
 	if err != nil {

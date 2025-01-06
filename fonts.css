@@ -221,37 +221,37 @@
   src: url('fonts/camingocode.woff');
 }
 @font-face {
-  font-family: 'cartograph';
+  font-family: 'cartograph', serif;
   font-weight: bold;
   font-style: italic;
   src: url('fonts/cartograph-bold-italic.woff');
 }
 @font-face {
-  font-family: 'cartograph';
+  font-family: 'cartograph', serif;
   font-weight: bold;
   font-style: normal;
   src: url('fonts/cartograph-bold.woff');
 }
 @font-face {
-  font-family: 'cartograph';
+  font-family: 'cartograph', serif;
   font-weight: normal;
   font-style: italic;
   src: url('fonts/cartograph-italic.woff');
 }
 @font-face {
-  font-family: 'cartograph';
+  font-family: 'cartograph', serif;
   font-weight: normal;
   font-style: normal;
   src: url('fonts/cartograph.woff');
 }
 @font-face {
-  font-family: 'cascadia-code';
+  font-family: 'cascadia-code', serif;
   font-weight: normal;
   font-style: normal;
   src: url('fonts/cascadia-code.ttf');
 }
 @font-face {
-  font-family: 'code-new-roman';
+  font-family: 'code-new-roman', serif;
   font-weight: normal;
   font-style: normal;
   src: url('fonts/code-new-roman.otf');

@@ -3,10 +3,11 @@ package calendar
 import (
 	"errors"
 	"fkirill.org/eink-meteo-station/config"
+	"fkirill.org/eink-meteo-station/renderable/utils"
 	"fmt"
-	"html/template"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 )
 
@@ -37,7 +38,8 @@ type calendarData struct {
 	CurrentDay string
 	DayHeaders []dayHeader // always 7 elements
 	Rows       []calendarDataRow
-	Legend     template.HTML
+	Legend     string
+	RootPath   string
 }
 
 var weekdayNames = []dayHeader{
@@ -115,7 +117,8 @@ func createCalendarData(year int, month time.Month, currentDay int, specialDays 
 		Rows:       rows,
 		CurrentDay: currentDayStr,
 		DayHeaders: weekdayNames,
-		Legend:     template.HTML(legend),
+		Legend:     legend,
+		RootPath:   utils.GetRootDir(),
 	}, nil
 }
 
@@ -147,34 +150,122 @@ var currentMonthContentTemplateText = `
     <thead>
       <tr>
         <td class="weekNumHeader">wk</td>
-{{range .DayHeaders}}
-        <td class="weekDayHeader{{if .Weekend}} weekDayHeaderWeekend{{end}}">{{.Text}}</td>
+{{range .DayHeaders}}<td class="weekDayHeader{{if .Weekend}} weekDayHeaderWeekend{{end}}">{{.Text}}</td>
 {{end}}
       </tr>
     </thead>
     <tbody>
-{{range .Rows}}
-    <tr>
+{{range .Rows}}<tr>
       <td class="weekNumRow">{{.WeekNum}}</td>
-  {{range .Days}}
-      <td class="dayCell{{if .CurrentDay}} currentDay{{end}}{{if .Weekend}} weekend{{end}}{{if .PublicHoliday}} publicHoliday{{end}}{{if .SchoolHoliday}} schoolHoliday{{end}}{{if .Important}} important{{end}}">{{if .Visible}}{{.Day}}{{else}}&nbsp;{{end}}</td>
+  {{range .Days}}<td class="dayCell{{if .CurrentDay}} currentDay{{end}}{{if .Weekend}} weekend{{end}}{{if .PublicHoliday}} publicHoliday{{end}}{{if .SchoolHoliday}} schoolHoliday{{end}}{{if .Important}} important{{end}}">{{if .Visible}}{{.Day}}{{else}}&nbsp;{{end}}</td>
   {{end}}
     </tr>
 {{end}}
     </tbody>
   </table>
 </div>
-<div class="calendarLegend">{{.Legend}}</div>
-`
+<div class="calendarLegend">{{.Legend}}</div>`
 
 var currentMonthHtmlTemplateText = `
 <html>
 <head>
-  <link rel="stylesheet" href="fonts.css"/>
-  <link rel="stylesheet" href="calendar.css"/>
+  <link rel="stylesheet" href="file://{{ .RootPath }}/fonts.css"/>
+  <style>
+.calendar {
+}
+
+.currentDayLarge {
+    font-size: 277px;
+    width: 962px;
+    text-align: center;
+    background: #555;
+    color: #eee;
+    font-family: "fira", serif;
+    font-weight: bold;
+}
+
+.monthName {
+    font-size: 176px;
+    width: 962px;
+    overflow: hidden;
+    text-align: center;
+    font-family: "envy-code-r", serif;
+    font-weight: bold;
+}
+
+.weekNumHeader {
+    padding-left: 25px;
+    width: 148px;
+    font-size: 37px;
+    text-align: left;
+    background: #ddd;
+    font-family: "bedstead", serif;
+    font-weight: bold;
+}
+
+.calendarTable {
+    border: 0;
+    border-spacing: 0;
+}
+
+.weekDayHeader {
+    width: 111px;
+    font-size: 56px;
+    text-align: center;
+    font-family: "bedstead", serif;
+    font-weight: bold;
+}
+
+.weekDayHeaderWeekend {
+    background: #ccc;
+}
+
+.weekNumRow {
+    padding-left: 25px;
+    font-size: 37px;
+    text-align: left;
+    background: #ddd;
+    font-family: "cartograph", serif;
+}
+
+.dayCell {
+    font-size: 56px;
+    text-align: center;
+    font-family: "bront-ubuntu", serif;
+}
+
+.weekend {
+    background: #ccc;
+}
+
+.currentDay {
+    color: #fff;
+    background: #222 !important;
+    font-weight: bold;
+}
+
+.publicHoliday {
+    background: #ccc;
+}
+
+.schoolHoliday {
+    background: #aaa;
+}
+
+.important {
+    color: #fff;
+    background: #666;
+}
+
+.calendarLegend {
+    font-size: 56px;
+    font-family: "bront-ubuntu", serif;
+    overflow-wrap: break-word;
+}
+
+  </style>
 </head>
-<body style="margin: 0">
-` + currentMonthContentTemplateText + `
+<body style="margin: 0">` + currentMonthContentTemplateText + `
 </body>
 </html>
 `
